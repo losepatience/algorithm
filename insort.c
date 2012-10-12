@@ -1,5 +1,5 @@
 /*
- * SORT(A)
+ * SORT(A)  --- hoho
  * for i = 2 to n
  * 	a = A[i];
  * 	j = i - 1;
