@@ -7,9 +7,8 @@
  * 		a[j + 1] = a[j];
  * 		j = j - 1;
  * 	A[j + 1] = a;
- *
- *
  */
+
 #include <stdio.h>
 
 int main(void)
