@@ -90,7 +90,7 @@ void rev(int n, char *s)
  * F(n) = E(n) + O(n)
  * O(n) = E(n - 1)
  * E(n) = 2F(n - 1)
- * ---> F(n) = 2(F(n - 1) + F(n - 2)
+ * ---> F(n) = 2(F(n - 1) + F(n - 2))
  */
 
 int main(void)
