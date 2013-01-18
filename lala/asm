@@ -1,0 +1,278 @@
+arm 汇编实验环境: 
+ a. linux c 语言调用汇编写的函数
+ b. u-boot go 命令调试(bin)
+
+* ------ arm 寄存器组:
+上电, ARM 默认 SVC 模式, ARM 状态,  IRQ&FIQ 关闭. 但考虑
+到代码可能是在任何情况下拷贝到内存然后跳转过来运行的, 在
+代码中还是要再设置一次.
+
+total: 31
+
+r0 r1 r2 r3 r4 r5 r6 r7 r8 r9 r10 r11 r12  
+---------- 8 ---------- ---- 10(fiq) ---- 
+
+r13 r14: 每种模式使用一组共 12 个(usr/sys 公用一组)
+
+r15
+
+cpsr:
+.-----------.----------.--------------.---.
+|31 30 29 28| 7  6 | 5 |4  3  2  1  0 |   |
+|-----------+------+---+--------------+---|
+|N  Z  C  V | I  F | T |M4 M3 M2 M1 M0|   |
+|-----------+------+---+--------------+---|
+|-  0  c  o | !irq |a/t|1  0  0  0  0 |usr|0
+|      a  v | !fiq |   |1  0  0  0  1 |fiq|1
+|      r  e |      |   |1  0  0  1  0 |irq|2
+|      r  r |      |   |1  0  0  1  1 |svc|3
+|      y  f |      |   |1  0  1  1  1 |abt|7
+|         l |      |   |1  1  0  1  1 |und|11
+|         o |      |   |1  1  1  1  1 |sys|15
+|         w |      |   |              |   |
+^-----------^------^---^--------------^---^
+
+* ------ PC 
+PC 总指向正在取址的指令, 在多级流水线中, 该地址等于
+正执行指令地址加 8.
+bl 把 pc - 4 放入 lr, 即 lr 为 bl 指令的下条指令地址.
+pc 读写值不对称: mov pc, pc ;跳转到下面第 2 条语句
+
+注意: str pc, addr 保存的值可能是当前指令下面的 8 或
+12 字节偏移(取决与芯片设置), 所以一般别用 str 操作 pc
+
+* ------ cpsr 中 t 位:
+在 armv4 前应设置为 0:
+在 armv4 及以后 t 版本中 0->arm 1->thumb
+在 armv5 非 t 系列 0->arm, 1->下条指令将产生 und 中断.
+b[l]x 指令根据跳转地址的最低位可转换为 thumb 状态
+
+* ------ 异常:
+1. 将 CPSR 复制到相应异常模式的 SPSR
+2. 据异常类型设置 CPSR 的运行模式位(irq 时, I 位置 1)
+3. 把下一条指令的地址放到连接寄存器 LR(异常模式)
+4. PC 从异常向量地址取下一条指令，跳转到异常处理程序
+
+* ------ bss 段:
+存放程序中未初始化的全局变量的一块内存区域, u-boot 在
+链接脚本中指定该段的起始位置, 并计算大小.
+
+* ------ gas 注释
+;  @  /**/
+
+* ------ .macro
+.macro inc, a ;可省略 "," 
+ldr r0, =\a
+add r0, #1
+.endm
+inc r0
+*
+分号用于划分独立的行
+#define END(name) \
+  .size name, .-name
+#define ENTRY(name) \
+	.export name !\
+	.align 4 !\
+name:
+#define ENDPROC(name) \
+	.type name, @function !\
+	END(name) 
+
+* ------ gas 位操作
+tst r0, #0x80 按位与结果设置 cpsr
+cmp r0, #0x80 按 r0-#0x80 结果设置 cpsr
+lsr: 寄存器中字的高端空出的位补 0
+asr: 保持符号位不变, 如为正数, 则空出的位补 0, 否则补 1
+ror: 由字的低端移出的位填入字的高端空出的位
+eor: 异或
+bic: 清位 bic r0, #3 ;r0 低 2 位清 0
+mov r0, #-3
+mov r0, r0, asr #30
+
+* ------ 条件码
+cs/hs (carry set/unsigned higher or same c set)
+cc/lo (carry clear/unsigned lower c clear)
+mi (minus/negative n set)
+pl (plus/positive or zero n clear)
+vs (overflow v set)
+vc (no overflow v clear)
+hi (unsigned higher c set and z clear)
+ls (unsigned lower or same c clear or z set)
+
+* ------ gas 符号/字节 操作
+有符号操作(s)只适用与字节(b)和半字(h)
+foo:	ldr r0, =rodata
+        ldrsb r0, [r0] @缺少s，r0 内容为无符号 255
+        mov pc, lr
+rodata: .word -1
+
+* ------ .align
+.align: 在当期位置插入 0-3 字节，以使代码 4 字节对齐。
+.align 5 (2^5 ---> 32 字节对齐, cacheline 32 bits, 提高了效率
+.balignl 16, 0xdeadbeef ;16 字节对齐，空余部分用 0xdeadbeef 补齐
+.fill count, size, value
+.fill 1024, 1, 0
+.skip/.space size, fill ;用 fill(省略默认为 0) 填充 size 个字节
+
+* ------ .equ
+用于定义常数(非字符串)，可以与 .globl 合用
+.equ  a, 0x1
+.set  a, 0x1
+a = 0x1
+如命令出现常数需加 #，而用 .equ 定义的常数无需 #
+
+* ------ .ascii
+.ascii "abc", "bcd" ;插入 abcbcd 在当前位置
+.asciz "abc", "bcd" ;插入 abc\0bcd\0 在当前位置
+.byte 64, 0x12, 'a' ;插入 0x40 0x12 0x41 在当前位置
+buf: .skip 512 ; 插入 512 字节，其值不可预料
+.rept 3
+.ascii 'a'
+.endr ; 插入 3 个 0x61
+
+* ------ .section .type
+.section: 声明一个段
+.section .start, "awx" ;allocatable, writable, executable
+先面的格式只用于 elf 目标
+.section ".start", #alloc, #write, #execinstr @兼容 solar
+
+.type: 一般只用于 elf 目标
+.type name, [#%]function/object
+
+* ------ .swi
+mov r0, #0x17 ;0x17 angel_SWIreason_EnterSVC 半主机操作
+swi 0x123456  ;0x123456 是 arm 指令集的半主机操作编号
+
+* ------ 寄存器寻址 
+* b 是相对当前 PC 的跳转，偏移量通过 bit[23:0] 算出, 32M
+uboot 可在任何内存运行, 故 b reset 是不二之选
+ldr 指令操作数范围是 4k, ldr 宏到数据缓存区的偏移范围 4k
+ldr pc, _irq ; 在 mmu 开启后，不能用 b(超出 32M)
+*
+adr r0, _start		;通过 PC 当前值计算 _start 的值, 注意 _start 取值
+ldr r0, #123		;123 在指令范围内
+ldr r0, =label1
+ldr r0, =0xffabcdef	;此处 ldr 是宏, 用于超出范围的常数/标签
+*
+ldr r0, [r1, #4]	;r0 ← [r1 + 4]  
+ldr r0, [r1, #4]!	;r0 ← [r1 + 4]	, r1 ← r1 + 4
+ldr r0, [r1], #4	;r0 ← [r1]	, r1 ← r1 + 4  
+
+* ------ 多寄存器寻址
+ldmia r0, {r2, r1} ;与寄存器顺序无关: r1 ← [r0], r2 ← [r0 + 4]
+*
+movs pc, lr 
+ldmia sp, {r0-lr}^	
+当目标寄存器包含 pc 时，把spsr复制到 cpsr
+对于 usr 和 sys 没有 spsr 的模式，结果不可预料
+{r0-lr}^: ^ 指明列表中的寄存器为 usr 模式下的寄存器
+*
+断压栈因不是同种模式的寄存器, 故不用简单的 stmfd 指令
+stmfd入栈指令, 相当于stmdb
+ldmfd出栈指令, 相当于ldmia
+
+* ------ arm 初始化： 
+整个start.S是一额段.
+
+a, 中断向量(以 irq 为例，其他的异常中断有类似的形式):
+
+IRQ_STACK_START 在 arch/arm/lib/interrupts.c 的 interrupt_init 
+函数中会被重新赋值。
+
+上电的时候指令Cache可关闭，也可不关闭，但数据Cache一定
+要关闭，否则可能导致刚开始的代码里面，去取数据的时候，
+从Cache里面取，而这时候 RAM 中数据还没有Cache过来，
+导致数据预取异常
+
+/*
+ * 1. *0 地址：nand启动时，soc 内置4k ram 映射为0地址。
+ * 系统会通过硬件把 nand 的前4k代码搬运到此处; 
+ * nor 启动时，nor 首地址被映射为0地址。
+ * 我们在0地址安置中断向量表，代码搬运到 ram 后的中断，
+ * 只要没有开 mmu，还是会到这里走一圈。但是此时irq 函数
+ * 在 ram 中，所以不能用b 命令跳转。
+ * 
+ * 2. 进入 linux 后，linux 会建立自己独立的中断向量表.
+ */
+_start: b start_code 
+	ldr pc, _irq 
+	_irq:	.word irq
+	.
+	.
+	.
+	.macro	irq_save_user_regs
+	sub	sp, sp, #S_FRAME_SIZE
+	stmia	sp, {r0 - r12}		@ Calling r0-r12
+	add	r7, sp, #S_PC
+	stmdb	r7, {sp, lr}^		@ Calling SP, LR
+	str	lr, [r7, #0]		@ Save calling PC
+	mrs	r6, spsr
+	str	r6, [r7, #4]		@ Save CPSR
+	str	r0, [r7, #8]		@ Save OLD_R0
+	mov	r0, sp
+	.endm
+
+	.macro	irq_restore_user_regs
+	ldmia	sp, {r0 - lr}^		@ Calling r0 - lr
+	mov	r0, r0
+	ldr	lr, [sp, #S_PC]		@ Get PC
+	add	sp, sp, #S_FRAME_SIZE
+	/* return & move spsr_svc into cpsr */
+	subs	pc, lr, #4
+	.endm
+
+	.align	5
+irq:
+	get_irq_stack 		@ 宏用于得到堆栈
+	irq_save_user_regs 	@ 宏用于保存寄存器状态到堆栈
+	bl	do_irq 		@ do_irq c文件中的空函数，可以添加功能
+
+
+
+6, ------ ddr 时序： 
+
+read:
+.---.   .-----.   .----.   .-----.   .---------.   .-----.   .---.
+|ACT|-->|n NOP|-->|read|-->|n NOP|-->|prechange|-->|n NOP|-->|ACT|
+^---^   ^-----^   ^----^   ^-----^   ^---------^   ^-----^   ^---^
+  |-------tRCD-------|---CL---|
+  |-----------------tRAS-----------------|---------tRP---------|
+  |----------------------------tRC-----------------------------|
+
+write:
+.---.   .-----.   .---- .   .-----.   .---------.   .-----.   .---.
+|ACT|-->|n NOP|-->|write|-->|n NOP|-->|prechange|-->|n NOP|-->|ACT|
+^---^   ^-----^   ^---- ^   ^-----^   ^---------^   ^-----^   ^---^
+  |-------tRCD------|          |----tWR--- |
+  |------------------tRAS------------------|--------tRP---------|
+  |---------------------------tRC-------------------------------|
+
+
+* ------ ldrex
+ARMV6 用 SWP 原子交换寄存器和内存数据, 用于实现信号量操作
+ldr 
+
+* ------ inline asm
+__asm__: 同 asm, 是汇编代码指示符. 因 gcc 初期没有 asm 关键字
+为避免 asm 与变量名冲突纳入了 __asm__.
+__volatile__: 只是 gcc 编译时不要对代码进行优化! 即保持汇编
+代码原样.
+__asm__ __volatile__(
+	"mrs r12, cpsr\n\t"
+	"orr r12, r12, #0xc0\n\t"
+	"msr cpsr_c, r12":::"r12", "cc", "memory"
+);
+.-----------.------------.      .----------.----------------------. 
+| constrain |    含义    |      | modifier |       说明           |
+.-----------+------------.      .----------+----------------------.
+|  r/l      | r0-r15     |      |  none    | read-only(4 input)   |
+.-----------+------------.      .----------+----------------------.
+|  m        | memory     |      |  =       | write-only(4 output) |       |
+.-----------+------------.      .----------+----------------------.
+|  I        | Immediate  |      |  +       | rw(4 both)           |
+.-----------+------------.      .----------+----------------------.
+|  X        | Any        |      |  &       | a register 4 output  |
+^-----------^------------^      ^----------^----------------------^
+
+
+
