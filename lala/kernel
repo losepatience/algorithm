@@ -29,6 +29,7 @@ list_add_tail(&s->list, &list);  /* list 为头, 没有父结构体 */
 list_for_each_entry(s, head, member) {
 	s->a = 2;
 }
+list_for_each_entry_safe(pos, n, head, member): support delete
 
 list_for_each(list, head): similar as list_for_each_entry
 # ---------------------------

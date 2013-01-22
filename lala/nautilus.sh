@@ -3,8 +3,8 @@
 
 # --------- Setup your system 
 
+------------------------------------
 * --- Install grub on PHD(Portable Hard Disk)
-
 $ fdisk /dev/sdb ... 
 $ mkfs -t ext3 /dev/sdb1
 $ e2label /dev/sdb1 boot
@@ -15,7 +15,6 @@ $ grub-install --root-directory=/mnt --no-floppy /dev/sdb
 /dev/sdb: 安装 stage1 到 sdb 的 mbr)
 ------------------------------------
 * --- Install CentOS from HDD
-
 下载2个 iso 安装文件到 sda2
 解压第1个 iso 中 isolinux 和 images 目录到sda2
 重启进入grub
@@ -28,7 +27,6 @@ $ boot
 find --set-root --ignore-floppies --ignore-cd /CentOS-6.2-i386-bin-DVD.iso)
 ------------------------------------
 * --- create alias 4 IPs 
-
 $ cat 192.168.110.73 gitserver >> /etc/hosts
 (note: windows 中, 对应的文件是 Windows/System32/drivers/etc/hosts)
 使用 ssh 时，也可以指定主机别名:
@@ -40,7 +38,6 @@ host gitserver
 (note: admin 指向 ~/.ssh/admin.pub 公匙)
 ------------------------------------
 * --- Common utility
-
 nevernote(the free-version of evernote)
 
 qstardict
@@ -57,12 +54,11 @@ IP_Messenger(http://ipmsg.org)
   选中 gfwlist 并把 "默认代理" 设置为 ssh-D(P)
 . 在 firefox 地址栏输入 about:config 把 network.proxy.socks_remote_dns
   设置为 true
-------------------------------------
 
 # --------- vim 
 
+------------------------------------
 * --- Configure
-
 set tags=tags; 
 (note: 自动转到父目录中查找 tags)
 
@@ -79,6 +75,12 @@ endif
 
 z-o --- z-c 
 
+:s/abc\zs[a-z]\ze//
+\zs 替换开始处
+\ze 替换结束处
+line(".")  当前光标所在行的行号
+line("'<") 所选区域第一行的行号
+
 * --- vimdiff
 [c 上一个 diff 点
 ]c 下一个 diff 点
@@ -88,35 +90,42 @@ d-p --- d-o diff-put 和 diff-obtain
 "xy --- "xp
 ------------------------------------
 * --- cscope
-
 $ find `pwd` -name "*.h" -o -name "*.c" > tags.files
 $ ctags -L tags.files
-$ cscope -Rbq -i tags.files
+$ cscope -Rbkq -i tags.files
+.---------------------------.
+| R |  recuerse             |
+.---+-----------------------.
+| b |  not enter cscope     |
+.---+-----------------------.
+| q |  speed up seaching    |
+.---+-----------------------.
+| q |  exclude /usr/include |
+^---+-----------------------^
 
 :cs add xxx 
 :cs show 
 
-:cs f s xx
-:cs f g xx
-:cs f d xx
-:cs f c xx
-:cs f t xx
-:cs f e xx
-:cs f f xx
-:cs f i xx
+:cs f g xx (definition)
+:cs f c xx (functions calling xx)
+:cs f d xx (functions called by xx)
+:cs f s xx (symbol)
+:cs f t xx (text string)
+:cs f f xx (file)
+:cs f i xx (file including xx)
+:cs f e xx (egrep)
 
-nnoremap <C-@>s :cs f s <C-R>=expand("<cword>")<CR><CR>
-nnoremap <C-@>g :cs f g <C-R>=expand("<cword>")<CR><CR>
-nnoremap <C-@>c :cs f c <C-R>=expand("<cword>")<CR><CR>
-nnoremap <C-@>t :cs f t <C-R>=expand("<cword>")<CR><CR>
-nnoremap <C-@>e :cs f e <C-R>=expand("<cword>")<CR><CR>
-nnoremap <C-@>f :cs f f <C-R>=expand("<cfile>")<CR><CR>
-nnoremap <C-@>i :cs f i <C-R>=expand("<cfile>")<CR><CR>
-nnoremap <C-@>d :cs f d <C-R>=expand("<cword>")<CR><CR>
+nnoremap <C-i>s :cs f s <C-R>=expand("<cword>")<CR><CR>
+nnoremap <C-i>g :cs f g <C-R>=expand("<cword>")<CR><CR>
+nnoremap <C-i>c :cs f c <C-R>=expand("<cword>")<CR><CR>
+nnoremap <C-i>t :cs f t <C-R>=expand("<cword>")<CR><CR>
+nnoremap <C-i>e :cs f e <C-R>=expand("<cword>")<CR><CR>
+nnoremap <C-i>f :cs f f <C-R>=expand("<cfile>")<CR><CR>
+nnoremap <C-i>i :cs f i <C-R>=expand("<cfile>")<CR><CR>
+nnoremap <C-i>d :cs f d <C-R>=expand("<cword>")<CR><CR>
 (note: "<cword>" 代表光标下的单词)
 ------------------------------------
 * --- Regular Expression
-
 + 匹配 + 前的字符 1-n 次 
 * 0-n 次 
 ? 0-1 次
@@ -132,14 +141,13 @@ nnoremap <C-@>d :cs f d <C-R>=expand("<cword>")<CR><CR>
 examples:
 :g/^[ \t]*$/d 
 :%s/[ \t]*$// 
-------------------------------------
-* --- Common usage
-
 d^ d$ dnw dnl
 gU <-> gu 大小写转化
 
 # --------- Common command
 
+------------------------------------
+* --- Common usage
 set -e 
 (note: shell 中发生错误时, 中断执行而退出)
 
@@ -192,10 +200,10 @@ EABI:
 	swi 0x0
 OABI
 	swi (#num | 0x900000)
-------------------------------------
 
 # --------- git
 
+------------------------------------
 * --- basic
                                                 .--------------.
 .---------------.                           .-> |blob |  size  |
@@ -370,11 +378,11 @@ so Wally in our example will pass the pre-git check.)
            operation, access is allowed and the matching stops.
     If no rule ends with a decision, ("fallthru"), access is rejected.
 )
-------------------------------------
 
 
 # --------- Shell Basic 
 
+------------------------------------
 * --- File 
 1. (cp / ln / mv) src des(Destination)
 
