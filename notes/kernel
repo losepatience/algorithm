@@ -1,0 +1,61 @@
+* ------ udelay
+通过循环实现: loops = n * HZ * loops_per_jiffy / 1000000
+考虑到溢出和商容易为0, 用移位实现此算式. 参考 arch/arm/lib/
+delay.S(2199023U>>11 = 2^30/1000000)
+在 start_kernel 计算 loops_per_jiffy(虽 easy, skill 值得学习)
+# ---------------------------
+
+* ------ list_head
+初始化: LIST_HEAD(hello)
+或者:
+struct list_head head;
+LIST_HEAD_INIT(head);
+
+插入: list_add(c, a)
+a ---n---> b ---n---> a    a ---n---> c ---n---> b ---n---> a
+a ---p---> b ---p---> a    a ---p---> b ---p---> c ---p---> a
+
+删除: list_del(a)
+
+list_entry(ptr, type, member): container_of(ptr, type, member)
+通过成员 member 及该成员实例地址 ptr 得到其父结构体地址
+
+list_for_each_entry(pos, head, member): for loop
+遍历 head 链表, 任一节点(除去头节点)通过 list_entry
+把其父结构体地址赋值给 pos.
+static struct s *s;
+static LIST_HEAD(list);
+list_add_tail(&s->list, &list);  /* list 为头, 没有父结构体 */
+list_for_each_entry(s, head, member) {
+	s->a = 2;
+}
+list_for_each_entry_safe(pos, n, head, member): support delete
+
+list_for_each(list, head): similar as list_for_each_entry
+# ---------------------------
+
+* ------ 竞态
+临界区: 同一时间只允许一个线程访问的代码段.
+1. 全局变量: 同硬件资源类似, 检测此 flag 变量. 空闲
+才允许进入 critical section(对此变量的测试和置位须
+原子操作)
+if (atomic_dec_and_test(&a)) {
+	atomic_inc(&a);
+	return -EBUSY;
+} else {
+	... critical section ...
+}
+
+# ---------------------------
+
+* ------ gcc
+1. switch-case: case 2 ... 7: statement;
+2. int widths[] = {[1 ... 9] = 1, [10 ... 19] = 2, [20] = 3};
+3. struct store {
+	int a;
+	int data[0];
+   };
+
+
+
+

@@ -1,0 +1,10 @@
+let g:netrw_dirhistmax  =10
+let g:netrw_dirhist_cnt =8
+let g:netrw_dirhist_1='/lib/modules/2.6.32-220.4.2.el6.i686'
+let g:netrw_dirhist_2='/etc'
+let g:netrw_dirhist_3='/home/nfs/amba/gpio'
+let g:netrw_dirhist_4='/home/projects/amba/ambarella/kernel/linux-2.6.38/arch/arm/plat-ambarella'
+let g:netrw_dirhist_5='/home/projects/gitolite-admin/conf'
+let g:netrw_dirhist_6='/home/projects/amba33'
+let g:netrw_dirhist_7='/home/projects/mod/driver/dm365/icr'
+let g:netrw_dirhist_8='/etc/sysconfig/network-scripts'

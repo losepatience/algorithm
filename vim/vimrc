@@ -1,0 +1,136 @@
+""""""""""""""""""""""""""""""
+" Common setting
+""""""""""""""""""""""""""""""
+filetype plugin indent on
+syntax enable
+syntax on
+set fileencodings=ucs-bom,utf-8,gbk,latin1
+set nocompatible
+colorscheme desert
+set go= " No menu
+set showcmd
+set ruler
+set nu
+set shiftwidth=8
+set tabstop=8
+set textwidth=78
+set smarttab
+set formatoptions=tcqlron
+set cinoptions=:0,l1,t0,g0
+set completeopt=longest,menu
+" set ai si
+" set foldmethod=syntax
+
+""""""""""""""""""""""""""""""
+" No bells
+""""""""""""""""""""""""""""""
+set noerrorbells visualbell t_vb=
+autocmd GUIEnter * set visualbell t_vb=
+
+""""""""""""""""""""""""""""""
+" Maximize when open
+""""""""""""""""""""""""""""""
+au GUIEnter * call MaximizeWindow()
+function! MaximizeWindow()
+    silent !wmctrl -r :ACTIVE: -b add,maximized_vert,maximized_horz
+endfunction
+
+""""""""""""""""""""""""""""""
+" Setting Font 
+""""""""""""""""""""""""""""""
+if has("gui_running")
+    if has("unix")
+        set guifont=Monospace\ 13
+        set guifontwide=KaiTi\ 14
+    elseif has("win32")
+        set guifont=Courier:h12:cANSI
+        set guifontwide=NSimSun:h12 
+    endif
+endif
+
+
+""""""""""""""""""""""""""""""
+" Taglist
+""""""""""""""""""""""""""""""
+let g:NERDTree_title="[NERDTree]"  
+let Tlist_Show_One_File=1		" only current file 
+let Tlist_Exit_OnlyWindow=1		" exit vim
+let Tlist_File_Fold_Auto_Close=1	" fold up inactive files
+let Tlist_Show_Menu=1			" display taglist's menu
+"let Tlist_Use_Right_Window=1
+"let Tlist_Auto_Open=1			
+
+""""""""""""""""""""""""""""""
+" NERDTree 
+""""""""""""""""""""""""""""""
+let NERDTreeChDirMode=2
+let NERDTreeShowBookmarks=1
+let NERDTreeDirArrows=1
+let NERDTreeQuitOnOpen=1
+" let NERDTreeShowLineNumbers=1
+" let NERDTreeMinimalUI=1
+" let NERDTreeShowHidden=1
+" let g:nerdtree_tabs_open_on_gui_startup=0
+" let g:nerdtree_tabs_open_on_console_startup=0
+
+""""""""""""""""""""""""""""""
+" BufExplorer
+""""""""""""""""""""""""""""""
+let g:bufExplorerSortBy='mru'
+let g:bufExplorerSplitRight=0
+let g:bufExplorerSplitVertical=1
+let g:bufExplorerSplitVertSize=20
+let g:bufExplorerUseCurrentWindow=1
+autocmd BufWinEnter \[Buf\ List\] setl nonumber
+
+""""""""""""""""""""""""""""""
+" winmanager
+""""""""""""""""""""""""""""""
+let g:winManagerWindowLayout="NERDTree|TagList"
+let g:winManagerWidth=30
+nmap wm :WMToggle<cr>
+
+""""""""""""""""""""""""""""""
+" Grep and ^+xi-^+o
+""""""""""""""""""""""""""""""
+nnoremap <silent> <F3> :Grep<CR>
+let g:SuperTabRetainCompletionType=2
+let g:SuperTabDefaultCompletionType="<C-X><C-O>"
+
+
+""""""""""""""""""""""""""""""
+" cscope
+""""""""""""""""""""""""""""""
+set cscopequickfix=s-,c-,d-,i-,t-,e-
+if has("cscope")
+	set csprg=/usr/bin/cscope
+	set csto=1	" first tags, then cscope.out
+	set cst		" use ":cs find g", not ":tag"
+	set nocsverb	" not echo link info
+	set cspc=3	" the last 3 node of path
+	if filereadable("cscope.out")
+		cs add cscope.out
+	else "search cscope.out elsewhere
+		let cscope_file=findfile("cscope.out", ".;")
+		if !empty(cscope_file) && filereadable(cscope_file)
+			exec "cs add" cscope_file
+		endif      
+	endif
+	set csverb	" reset to the default  
+endif
+
+nnoremap <C-i>s :cs f s <C-R>=expand("<cword>")<CR><CR>
+nnoremap <C-i>g :cs f g <C-R>=expand("<cword>")<CR><CR>
+nnoremap <C-i>c :cs f c <C-R>=expand("<cword>")<CR><CR>
+nnoremap <C-i>t :cs f t <C-R>=expand("<cword>")<CR><CR>
+nnoremap <C-i>e :cs f e <C-R>=expand("<cword>")<CR><CR>
+nnoremap <C-i>f :cs f f <C-R>=expand("<cfile>")<CR><CR>
+nnoremap <C-i>i :cs f i <C-R>=expand("<cfile>")<CR><CR>
+nnoremap <C-i>d :cs f d <C-R>=expand("<cword>")<CR><CR>
+
+""""""""""""""""""""""""""""""
+" ctags
+""""""""""""""""""""""""""""""
+set autochdir
+set tags=tags;
+
