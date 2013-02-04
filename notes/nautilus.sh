@@ -1,4 +1,3 @@
-
 #!/bin/sh+  (/)
 
 # --------- Setup your system 
@@ -26,6 +25,18 @@ $ boot
 如果我们不能确定 iso 在哪个分区，可以用下面的命令
 find --set-root --ignore-floppies --ignore-cd /CentOS-6.2-i386-bin-DVD.iso)
 ------------------------------------
+* --- Setup CentOS
+$ sudo yum install unrar git git-gui gitk gnupg gnupg2 flex bison gperf	\
+	gcc gcc-c++ zip curl zlib-devel wget mtd-utils mtd-utils-ubi	\
+	fakeroot fakeroot-libs gawk subversion unixODBC util-linux	\
+	SDL-devel esound-devel esound-libs wxGTK-devel ncurses-devel	\
+	readline-devel libzip-devel xorg-x11-proto-devel -y
+$ sudo yum install minicom nfs-utils rpcbind tftp tftp-server samba -y
+$ sudo yum install gstreamer-plugins-ugly gstreamer-plugins-bad -y
+(note: mp3 decode)
+$ sudo yum install vim-X11 telnet minicom -y
+$ sudo yum install fuse fuse-ntfs-3g -y
+------------------------------------
 * --- create alias 4 IPs 
 $ cat 192.168.110.73 gitserver >> /etc/hosts
 (note: windows 中, 对应的文件是 Windows/System32/drivers/etc/hosts)
@@ -36,6 +47,14 @@ host gitserver
 	port 22
 	identityfile ~/.ssh/admin
 (note: admin 指向 ~/.ssh/admin.pub 公匙)
+------------------------------------
+* --- Release memory
+$ sudo sync
+$ sudo echo 3 > /proc/sys/vm/drop_caches
+(note:	0 - 不释放
+	1 - 释放页缓存
+	2 - 释放dentries和inodes
+	3 - 释放所有缓存)
 ------------------------------------
 * --- Common utility
 nevernote(the free-version of evernote)
@@ -59,6 +78,9 @@ IP_Messenger(http://ipmsg.org)
 
 ------------------------------------
 * --- Configure
+U 撤销行上的所有修改
+删除三个字符 "3x", 计数总是放在要被处理多次的命令前面
+
 set tags=tags; 
 (note: 自动转到父目录中查找 tags)
 
@@ -356,6 +378,10 @@ $ git cherry-pick [–n] <commit name>
 (note: merge a commit)
 
 $ git branch <new branch> <start point>
+
+$ cp git-completion.bash ~/.git-completion.bash 
+$ echo ". ~/.git-completion.bash" >> ~/.bashrc
+(note: auto-completion)
 ------------------------------------
 * --- Gitolte
 
