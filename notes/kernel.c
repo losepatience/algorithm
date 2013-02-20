@@ -45,6 +45,13 @@ list_for_each_entry(s, head, member) {
 list_for_each_entry_safe(pos, n, head, member) /* support delete */
 list_for_each(list, head)
 
+/* XXX ------ hash table */
+hlist_del(struct hlist_node *n); /* delete */
+hlist_add_head(struct hlist_node *n, struct hlist_head *h); /* n after head */
+hlist_add_before(struct hlist node *n,struct hlist_node *next); /* next -> n */
+hlist_add_before(struct hlist node *n,struct hlist_node *next); /* n -> next */
+hlist_for_each_entry(tpos, pos, head, member); /* tpos -> parent struct */
+
 
 /* XXX ------ critical section
  * only allow one thread entering at any time.
