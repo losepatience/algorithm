@@ -227,6 +227,9 @@ $ cp /root/{a,b} /root/dir/
 $ cp fs2410_kernel_2614.[I,W]?? /tmp
 (note: cp support RE)
 
+$ cp /etc/fonts/conf.d/49-sansserif.conf
+(*note: Solve chinese confusion code in evince)
+
 EABI: Embedded application binary interface
 (note: EABI r7 用来指定 swi 号)
 EABI: 
