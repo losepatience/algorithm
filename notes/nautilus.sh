@@ -1,10 +1,10 @@
 #!/bin/sh
 
-# --------- Setup your system 
+# --------- Setup your system
 
 ------------------------------------
 * --- Install grub on PHD(Portable Hard Disk)
-$ fdisk /dev/sdb ... 
+$ fdisk /dev/sdb ...
 $ mkfs -t ext3 /dev/sdb1
 $ e2label /dev/sdb1 boot
 $ mount /dev/sdb1  /mnt
@@ -37,7 +37,7 @@ $ sudo yum install gstreamer-plugins-ugly gstreamer-plugins-bad -y
 $ sudo yum install vim-X11 telnet minicom -y
 $ sudo yum install fuse fuse-ntfs-3g -y
 ------------------------------------
-* --- create alias 4 IPs 
+* --- create alias 4 IPs
 $ cat 192.168.110.73 gitserver >> /etc/hosts
 (note: windows 中, 对应的文件是 Windows/System32/drivers/etc/hosts)
 使用 ssh 时，也可以指定主机别名:
@@ -74,17 +74,14 @@ IP_Messenger(http://ipmsg.org)
 . 在 firefox 地址栏输入 about:config 把 network.proxy.socks_remote_dns
   设置为 true
 
-# --------- vim 
+# --------- vim
 
 ------------------------------------
 * --- Configure
-U 撤销行上的所有修改
-删除三个字符 "3x", 计数总是放在要被处理多次的命令前面
-
-set tags=tags; 
+set tags=tags;
 (note: 自动转到父目录中查找 tags)
 
-set autochdir  
+set autochdir
 (note: 自动转换当前文件所在目录为工作目录)
 
 if has("gui_running")
@@ -95,23 +92,53 @@ if has("gui_running")
 endif
 (note: vim 的字体是不可设置的)fi fi
 
-z-o --- z-c 
+* --- Edit
+w 下一词词首, b 上一词词首. e 下一词词尾(ge).
+(note: 大写版本将忽略除空格和 tab 外的分割符)
+
+^+e 向上滚屏(下移一行), ^+y 方向相反
+
+zt 当前行置顶, zz 置中, zb 置底.
+
+d4w: 不删除第 5 词词首. !!!c2w: 不删除词前空格
+(note: x->dl X->dh D->d$ C->C$ s->cl S->cc)
+
+. 命令重复除 ^+r 和 u 外的所有编辑命令.
+
+daw 删词及词后空格, diw: 删词(note: das dis cis cas)
+
+Visual: try o & O
+
+* --- 加速:
+:cmd: ^+l 向左一词, ^+r 向右, ^+b 行首, ^+e 行尾, ^+w 删词
+
+z-o --- z-c
 ^+a: 数字加1
 insert 模式: ^+w 删除词
 
-下面命令可以读取当前目录下的内容到第 10 行: :10read !ls
+读取当前目录下的内容到第 10 行: :10read !ls
+:write !wc 内容通过标准输入送入指定的命令中.
 
-:write !wc 被写入的内容会通过标准输入送入指定的命令中.
-
-global 命令: 找到符合匹配模式的行然后将命令作用其上
+global:
 :g/^/m 0
-:g/^/s/^/\=line("."). " "/ ;\= 字符串转换成命令 .连字符
+line(".")  当前光标所在行的行号
+line("'<") 所选区域第一行的行号
+string starting with "\=" is evaluated as an expression
+:g/^/s/^/\=line("."). " "/
+:s/^/\=1 + 2/
+
+:let n=0 | g/abc(\zs\d\+/s//\=n/|let n+=1 ;)
+let 为变量赋值 (:help let )
+| 用来分隔不同的命令 (:help :bar )
+g 在匹配后面模式的行中执行指定的ex命令 (:help :g )
+\zs 指明匹配由此开始 (:help /\zs )
+\d\+ 查找1个或多个数字 (:help /\d )
+s 在选中的区域中进行替换 (:help :s )
+\= 指明后面是一个表达式 (:help :s\= ) 
 
 :s/abc\zs[a-z]\ze//
 \zs 替换开始处
 \ze 替换结束处
-line(".")  当前光标所在行的行号
-line("'<") 所选区域第一行的行号
 
 * --- vimdiff
 [c 上一个 diff 点
@@ -135,8 +162,8 @@ $ cscope -Rbkq -i tags.files
 | q |  exclude /usr/include |
 ^---+-----------------------^
 
-:cs add xxx 
-:cs show 
+:cs add xxx
+:cs show
 
 :cs f g xx (definition)
 :cs f c xx (functions calling xx)
@@ -158,23 +185,23 @@ nnoremap <C-i>d :cs f d <C-R>=expand("<cword>")<CR><CR>
 (note: "<cword>" 代表光标下的单词)
 ------------------------------------
 * --- Regular Expression
-+ 匹配 + 前的字符 1-n 次 
-* 0-n 次 
++ 匹配 + 前的字符 1-n 次
+* 0-n 次
 ? 0-1 次
-{i} i 次 
+{i} i 次
 {i, j} i-j 次
 
 . 任何字符
 ^ 行首  $ 行尾 \< 词首 \> 词尾
 [c1-c2] c1-c2 中的任何字符
 [^c1-c2] c1-c2 外的任何字符
-\(\) 标记 \(\) 间的内容，之后可用 \1-\9 来引用它 
+\(\) 标记 \(\) 间的内容，之后可用 \1-\9 来引用它
 
 a\|b: 多选一
 
 examples:
-:g/^[ \t]*$/d 
-:%s/[ \t]*$// 
+:g/^[ \t]*$/d
+:%s/[ \t]*$//
 d^ d$ dnw dnl
 gU <-> gu 大小写转化
 
@@ -182,25 +209,25 @@ gU <-> gu 大小写转化
 
 ------------------------------------
 * --- Common usage
-set -e 
+set -e
 (note: shell 中发生错误时, 中断执行而退出)
 
 $ set -o vi
 (note: 设置 bash 使用跟 vi 相同的快捷键)
 
 *history
-$ cd - 
+$ cd -
 $ ls /home/git
-$ cd !$ 
-$ !cd 
+$ cd !$
+$ !cd
 (note: run the last cd cmd in history)
 $ cd /home/git/hello.git
 $ !!:s/hello.git/hoho
 $ !-2
 
-$ mail -s "subject" user@ip < file 
+$ mail -s "subject" user@ip < file
 
-$ yes | rm -i 
+$ yes | rm -i
 
 $ time dd if=/dev/hda of=disk.mbr bs=512 count=1
 real    0m 30.10s
@@ -209,7 +236,7 @@ sys     0m 4.73s
 (note: user+sys 占用的 cpu 时间, real 总时间(cpu + dma + .))
 
 $ date -s 1982-08-12
-$ date -s 18:30:00 
+$ date -s 18:30:00
 $ clock -w
 
 $ find . -name *.C -type f -o -name *.H -ok rm {} \;
@@ -232,7 +259,7 @@ $ cp /etc/fonts/conf.d/49-sansserif.conf
 
 EABI: Embedded application binary interface
 (note: EABI r7 用来指定 swi 号)
-EABI: 
+EABI:
 	mov r7, #num
 	swi 0x0
 OABI
@@ -247,8 +274,8 @@ OABI
 | commit | size |                           |   |-----^--------|
 |--------+------|      .-----------------.  |   | the 1st file |
 |  tree  | 92ec2| ---> |  tree  |  size  |  |   ^--------------^
-|--------+------|      |----.---^-.------|  |  
-| author | John |      |blob|5b1d3|lib.c | -* 
+|--------+------|      |----.---^-.------|  |
+| author | John |      |blob|5b1d3|lib.c | -*
 |--------+------|      |----+-----+------|      .--------------.
 |commiter| John |      |blob|911e7|readme| ---> |blob |  size  |
 |--------*------|      ^----^-----^------^      |-----^--------|
@@ -260,7 +287,7 @@ OABI
 	git 不以文件名的方式储存对象，而是把对象储存到数
 据库中，我们可以通过队形内容的 hash 值去寻址对象。
 
-.-----------.         .------------.         .----------. 
+.-----------.         .------------.         .----------.
 |working dir| ------> |staging area| ------> |repository|
 ^-----------^ git add ^------------^ commit  ^----------^
 
@@ -270,8 +297,8 @@ git clone 所得到的所有东西。
 数据库中抽取的，放于磁盘，供你修改和使用。
 	暂存区是一个文件，它保存下次将要提交的信息，通常它
 就是 index。
-                       
-*初始化版本库并添加跟踪文件: 
+
+*初始化版本库并添加跟踪文件:
 	使用 $ git init 来生成版本库的框架，使用 $ git add/rm 添
 删跟踪的文件。取消跟踪但不删除文件 $ git rm a --cached。
 要删除暂存区的某文件 $ git rm a -f。
@@ -290,18 +317,18 @@ $ git add 时产生的快照. 所以提交前通常先运行 $ git add
 来生成文件快照，commit 时使用 -a 选项可以跳过这步
 *重命名工作区或者暂存区的文件: $ git mv a b
 
-*查看文件状态: $ git status 
-*查看提交历史: $ git log 
+*查看文件状态: $ git status
+*查看提交历史: $ git log
 	要显示提交历史中文件增减和修改信息使用 --stat 选项；
 要显示文件内容的变动信息使用 -p 选项；指明查看条目:
 -(n) --since,--after --until,--before --author --committer
 
-*查看不同: 
+*查看不同:
 $ git diff *查看暂存区和工作区的差异
-$ git diff --cached *查看暂存区和上次提交快照的差异: 
+$ git diff --cached *查看暂存区和上次提交快照的差异:
 $ git diff commit1 commit2
 $ git diff branch1 branch2
-$ git format-patch master --stdout > ~/tmp.patch 
+$ git format-patch master --stdout > ~/tmp.patch
 (note: 把当期分支与 maste 分支的差别放入 tmp.patch 文件)
 $ git apply ~/tmp.patch 打补丁
 $ git am ~/tmp.patch 相对 apply，am 支持从电子又见格式 patch
@@ -314,7 +341,7 @@ $ git commit --amend -m "version again"
 $ git checkout hello.c 取消文件修改
 $ git reset HEAD hello.c 取消 git add
 $ git reset --mixed HEAD^ 取消 git add 和 git commit
-$ git reset --hard versionxxx 
+$ git reset --hard versionxxx
 ------------------------------------
 * --- Branch        .---.
                     | m |
@@ -333,7 +360,7 @@ $ git branch test
 $ git checkout test
 (note: 可用 $ git checkout -b test 代替上面的两句)
 $ git chechout master
-$ git merge test 
+$ git merge test
 $ git branch -m [old] [new]
 
 *正在某分支工作突然需要切换另一个分支工作，可还不想提
@@ -348,9 +375,9 @@ $ git stash clear 清空栈
 $ git remote [-v]
 $ git remote add [shortname] [url]
 $ git fetch [remote-name]
-$ git remote rename 
-$ git remote rm 
-*$ git remote show [remote-name] 
+$ git remote rename
+$ git remote rm
+*$ git remote show [remote-name]
 
 $ git check -b br1 origin/svrbr
 (note: 检出服务器的 svrbr 分支到本地 br 分支)
@@ -367,7 +394,7 @@ $ git push [remote] :[branch]
 $ git push -f
 
 *在本地库中删除所有远程库 origin 中已不存在的分支:
-$ git remote prune origin 
+$ git remote prune origin
 ------------------------------------
 * --- Git advanced skill
 
@@ -379,14 +406,14 @@ if [ -f .git-completion.bash ]; then
 fi
 
 $ git reflog record your commit history
-(note: afer a $ git reset --hard abcde, the sha-1 "abcde" 
+(note: afer a $ git reset --hard abcde, the sha-1 "abcde"
 are still in reflog, you can run $ git reset --hard abcde to
 reset it. the $ git gc --prune=0 does not clear refs still in
-reflog, so you should run 
-$ git reflog expire --expire-unreachable=0 --all 
+reflog, so you should run
+$ git reflog expire --expire-unreachable=0 --all
 firstly)
 
-$ git rebase -i sha1-id 
+$ git rebase -i sha1-id
 (note: rebase to delete some commit)
 
 $ git cherry-pick [–n] <commit name>
@@ -394,7 +421,7 @@ $ git cherry-pick [–n] <commit name>
 
 $ git branch <new branch> <start point>
 
-$ cp git-completion.bash ~/.git-completion.bash 
+$ cp git-completion.bash ~/.git-completion.bash
 $ echo ". ~/.git-completion.bash" >> ~/.bashrc
 (note: auto-completion)
 ------------------------------------
@@ -413,7 +440,7 @@ so Wally in our example will pass the pre-git check.)
     3. These rules are examined in the sequence they appeared in the conf file.
     For each rule:
         a. If the ref does not match the refex, the rule is skipped.
-        b. If it is a deny rule (the permissions field is a -), 
+        b. If it is a deny rule (the permissions field is a -),
            access is rejected and the matching stops.
         c. If the permission field matches the specific type of write
            operation, access is allowed and the matching stops.
@@ -421,10 +448,10 @@ so Wally in our example will pass the pre-git check.)
 )
 
 
-# --------- Shell Basic 
+# --------- Shell Basic
 
 ------------------------------------
-* --- File 
+* --- File
 1. (cp / ln / mv) src des(Destination)
 
 2. 【硬连接】
@@ -448,7 +475,7 @@ SUID的优先级比SGID高，当一个可执行程序设置了SUID，
 
 [root@sgrid5 bin]# ls -l passwd
 
-[root@beauty ~]# ls -l /usr/bin/passwd 
+[root@beauty ~]# ls -l /usr/bin/passwd
 -rwsr-xr-x 1 root root 25980 2月  22 2012 /usr/bin/passwd
 
 虽然你以test登陆系统，但是当你输入passwd命令来更改密码的时候，由于 passwd设置了SUID位，因此虽然进程的实际用户ID是test对应的ID，但是进程的有效用户ID则是passwd文件的所有者root的ID, 因此可以修改/etc/passwd文件。
