@@ -37,6 +37,45 @@ $ sudo yum install gstreamer-plugins-ugly gstreamer-plugins-bad -y
 $ sudo yum install vim-X11 telnet minicom -y
 $ sudo yum install fuse fuse-ntfs-3g -y
 ------------------------------------
+* --- Install wps beta1
+下载 wps-office_8.1.0.3724~b1p2_x86.tar.xz 并解压为 wps
+$ cd wps
+$ mkdir tmplib
+$ cp xx/libstdc++.so.6.0.17 xx/libfreetype.so.6.8.0 ./tmplib
+$ ln -s ....
+vim wps/wpp/et and add
+  export LD_LIBRARY_PATH=xx/wps/tmplib:$LD_LIBRARY_PATH
+beta 版本有 bug, 目前只能用 sudo 才行!
+------------------------------------
+* --- Install texlive-cjk
+$ cat > /etc/yum.repos.d/texlive.repo << EOF
+[texlive]
+name=TeXLive
+baseurl=http://jnovy.fedorapeople.org/texlive/2011/packages.el6/
+enabled=1
+gpgcheck=0
+EOF
+$ yum install texlive-cjk
+(note: By default, fonts are installed in
+/usr/share/texlive/texmf-dist/tex/latex/cjk/texinput/
+ls this dir and use one.
+Example:
+	\begin{CJK}{UTF8}{gbsn}
+)
+------------------------------------
+* --- Install fonts
+$ cp *.ttf /usr/share/fonts/tauren
+$ cd /usr/share/fonts/tauren
+$ mkfontscale
+$ mkfontdir
+$ fc-cache -fv
+(note:
+mkfontdir: 搜索所用字体文件，去其后缀作为字体名，并把字体
+名、字体文件、参数写入到font.dir 供 X 服务器使用
+fc-cache -fv: 刷新字体缓存
+fc-list: 查看已安装的字体
+)
+------------------------------------
 * --- create alias 4 IPs
 $ cat 192.168.110.73 gitserver >> /etc/hosts
 (note: windows 中, 对应的文件是 Windows/System32/drivers/etc/hosts)
@@ -134,7 +173,7 @@ g 在匹配后面模式的行中执行指定的ex命令 (:help :g )
 \zs 指明匹配由此开始 (:help /\zs )
 \d\+ 查找1个或多个数字 (:help /\d )
 s 在选中的区域中进行替换 (:help :s )
-\= 指明后面是一个表达式 (:help :s\= ) 
+\= 指明后面是一个表达式 (:help :s\= )
 
 :s/abc\zs[a-z]\ze//
 \zs 替换开始处
