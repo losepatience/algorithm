@@ -1,0 +1,109 @@
+
+0. ------ download uboot 
+make ARCH=arm CROSS_COMPILE=arm-hisiv100nptl-linux- hi3518a_config
+make ARCH=arm CROSS_COMPILE=arm-hisiv100nptl-linux- -j 20 
+
+1. ------ download kernel
+
+make ARCH=arm CROSS_COMPILE=arm-hisiv100nptl-linux- menuconfig
+make ARCH=arm CROSS_COMPILE=arm-hisiv100nptl-linux- uImage
+
+
+tftp 82000000 uImage
+
+sf probe 0
+sf erase 100000 0x300000
+sf write 82000000 100000 300000
+
+nand erase 100000 300000
+nand write 82000000 100000 300000
+
+setenv bootargs 'mem=64M console=ttyAMA0,115200 root=/dev/mtdblock2 rootfstype=jffs2 mtdparts=hinand:1M(boot),3M(kernel),12M(rootfs),112M(others)'
+
+setenv bootargs 'mem=64M console=ttyAMA0,115200 root=/dev/mtdblock2 rootfstype=jffs2 mtdparts=hisfc:1M(boot),3M(kernel),12M(rootfs),112M(others)'
+
+setenv ipaddr 192.168.9.2
+setenv serverip 192.168.9.1
+setenv bootargs 'mem=64M console=ttyAMA0,115200 root=/dev/nfs nfsroot=192.168.9.1:/home/nfs/rootfs,proto=tcp,nolock ip=192.168.9.2:192.168.9.1:192.168.9.1:255.255.255.0:hbipc:eth0:off'
+
+
+setenv bootcmd 'tftp 0x82000000 uImage;bootm 0x82000000'
+setenv bootcmd 'nand read 0x82000000 0x100000 0x300000;bootm 0x82000000'
+
+2. ------ transplant wifi
+
+a. Kernel Configurations
+[*] Networking support  ---> 
+    -*- Wireless  --->
+        <M> cfg80211 - wireless configuration API // must M
+        <M> Generic IEEE 802.11 Networking Stack (mac80211)
+
+Device Drivers --->
+    [*] Network device support --->
+        [*] Wireless LAN --->
+            <M> Atheros Wireless Cards --->
+                <M> Atheros 802.11n wireless cards support
+                <M> Atheros HTC based wireless cards support 
+
+b. Compile
+
+export ARCH=arm
+export CROSS_COMPILE=arm-hisiv200-linux-
+make KLIB=/home/linus/working/hi3518/Hi3518_SDK_V1.0.3.0/osdrv/kernel/linux-3.0.y KLIB_BUILD=/home/linus/working/hi3518/Hi3518_SDK_V1.0.3.0/osdrv/kernel/linux-3.0.y ARCH=arm CROSS_COMPILE=arm-hisiv200-linux- 
+
+insmod compat.ko
+insmod sch_codel.ko
+insmod sch_fq_codel.ko
+insmod cfg80211.ko
+insmod mac80211.ko
+
+insmod ath.ko
+insmod ath9k_hw.ko
+insmod ath9k_common.ko
+insmod ath9k.ko
+insmod ath9k_htc.ko
+
+3. ------ nfs 启动
+
+[*] Networking support --->
+    Networking options --->
+        [*] IP: kernel level autoconfiguration
+
+File systems --->
+    [*] Network File Systems --->
+        [*] Root file system on NFS 
+
+
+4. ------ GPIO
+
+vim arch/arm/Kconfig
+config ARCH_HI3518
+	bool "hisilicon hi3518 family"
+	select ARM_AMBA
+	.
+	.
+	.
+	select ARCH_WANT_OPTIONAL_GPIOLIB
+
+5. ------ serial(ttyAMA0)
+Device Drivers --->
+    Character devices ---> 
+        Serial drivers  --->
+            <*> ARM AMBA PL011 serial port support 
+            [*] Support for console on AMBA serial port 
+
+6. ------ busybox
+cp busybox_cfg_hfp_nptl .config
+make -j 20
+make install
+
+
+7. ------ note
+/sys/slab 为 mmz.ko 所用, 否则会 oops 滴
+General setup  --->
+  [*] Enable SLUB debugging support
+
+framebuffer 为 hifb.ko 所用.
+Device Drivers
+  Graphics support --->
+    <*> Support for frame buffer devices

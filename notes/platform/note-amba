@@ -1,0 +1,659 @@
+		amba SDK3.3 笔记
+	    John Lee <furious_tauren@163.com>
+
+本文档是 amba 开发笔记, 是按日志的形式记录的，有点杂乱。 
+
+* ------ Download fw from tftp
+
+nandwrite --sn=1
+nandwrite --auto_boot=0
+nandwrite --auto_dl=1
+nandwrite --pri_addr=0xc0100000
+nandwrite --pri_file=kernel_filesys.update
+
+nandwrite --ethmac=00:11:22:33:44:55
+nandwrite --lan_ip=10.0.0.2
+nandwrite --lan_mask=255.255.255.0
+nandwrite --lan_gw=10.0.0.1
+nandwrite --tftpd=10.0.0.1
+
+{
+setenv auto_boot 0
+setenv auto_dl 1
+setenv eth0_mac 20:11:09:19:10:39
+setenv eth0_ip 10.0.0.2
+setenv eth0_mask 255.255.255.0
+setenv eth0_gw 10.0.0.1
+setenv tftpd 10.0.0.1
+setenv pri_addr 0xc0100000
+setenv pri_file amboot_hal_kernel_lnx.bin
+setenv pri_comp 0
+}
+
+#There is no need to set the following Env
+nandwrite --eth1_mac=55:66:77:88:99:00
+nandwrite --eth1_ip=10.0.0.2
+nandwrite --eth1_gw=10.0.0.1
+nandwrite --eth1_mask=255.255.255.0
+
+* 如果板卡上没有 amboot，那只能从 USB 下载
+------------------------------------------------------------
+* ------ Modify amboot to fit hardware of 862
+
+* * 如果不使用 720x480 lcd, 可以去掉 amboot_bsp_entry
+函数(bsp.c) 中的：
+setup_extra_cmdline("video=amb0fb:720x480,720x480,1,0");
+
+* * 在 amboot/bsp/a5sipcam/bsp.h 中指定 nand 分区信息，并由
+firmfl.c 烧写到 ptb 分区。在 kernel 启动过程中会读取此分区,
+并根据其内容作 mtd 分区。
+
+* * PHY&FPGA 复位
+PHY 掉电后，会丢失其配置，所以 linux 启动过程中我们会给
+PHY 复位
+
+------------------------------------------------------------
+* ------ Add source files in amboot：
+
+a. 源文件添加到 amboot/src/bld/hanbang 目录
+头文件添加到 amboot/src/bld/hanbang/include 目录
+
+b. 编辑 amboot/config/Makefile.amboot:
+
+INCLUDES += -I$(TOP)/src/bld/hanbang/include
+SRCS += \
+	$(TOP)/src/bld/hanbang/irq_idc.S \
+	$(TOP)/src/bld/hanbang/i2c.c \
+	$(TOP)/src/bld/hanbang/at24.c
+AMBOOT_BLD_OBJS += \
+	irq_idc.o \
+	i2c.o \
+	at24.o
+%_debug.o: $(TOP)/src/bld/hanbang/%.S partinfo.h
+	$(ASM_DEBUG_OBJ)
+%_debug.o: $(TOP)/src/bld/hanbang/%.c partinfo.h
+	$(MAKE_DEBUG_OBJ)
+%_release.o: $(TOP)/src/bld/hanbang/%.S partinfo.h
+	$(ASM_NDEBUG_OBJ)
+%_release.o: $(TOP)/src/bld/hanbang/%.c partinfo.h
+	$(MAKE_NDEBUG_OBJ)
+
+c. 至此你可以在 main.c 中使用你定义的函数，但是在
+MEMFWPROG_OBJS 还要添加用到的 wtd.o。
+编辑 Makefile.devfw：
+MEMFWPROG_OBJS += wdt.o
+
+------------------------------------------------------------
+* ------ Modify kernel to fit hardware of 862
+
+* * 流程
+  plat-ambarella/misc/board.c 中声明板载设备结构体，以及其对
+应驱动的 module_param。
+  plat-ambarella/generic/init.c 中的 ambarella_init_machine 
+函数调用各个设备的 init 函数，比如 ambarella_init_adc， 从而
+对 a5s soc 片上设备作基本初始化操作。
+  mach-ambarella/init-coconut.c 调用 ambarella_init_machine，
+然后，调用 platform_add_devices 把 soc 片上设备注册到 platform
+总线，然后调用 i2c_register_board_info 注册 soc 片上 i2c 设备。
+  mach-ambarella/init-coconut.c 相对 init-generic.c 没有注册
+ambarella_ahci0(sata), ambarella_ehci0(usb), ambarella_ohci0(usb).
+多注册了 ambarella_power_supply.
+----------
+* * 修改 init-coconut.c 
+
+a. platform 设备裁剪
+
+* ambarella_fb0 ambarella_fb1:
+	提供显示接口的抽象描述，它同时代表着显示接口的储存区
+	保留: 可能被 IAV 模块用到
+	对应驱动 drivers/video/ambarella/ambarella_fb.c
+
+* ambarella_i2s0: 
+	i2s 适配器
+	保留
+	对应驱动 sound/soc/ambarella/ambarella_i2s.c
+* ambarella_pcm0: 
+	用作 DMA，要使用音频必须选中它
+	对应驱动 sound/soc/ambarella/ambarella_pcm.c
+* ambarella_dummy_codec0: 
+	amba 模拟的解码芯片
+	保留
+	对应驱动 sound/soc/codecs/ambarella_dummy.c
+
+* ambarella_sd0:
+	SD 适配器
+	保留
+
+* amba 作为 USB 从设备需要保留： 
+@ ambarella_udc0
+	USB 主控制器驱动
+	对应驱动 drivers/usb/gadget/ambarella_udc.c
+@ ambarella_usb_device0
+	通信功能组件，要使用 us_pc.exe, USBServer 必须保留
+	对应驱动 drivers/usb/gadget/android.c
+@ ambarella_fsg_device0
+	USB Mass Storage， PC 上通过 USB 读写 A5 分区
+	对应驱动 drivers/usb/gadget/f_mass_storage.c 
+
+* ambarella_wdt0
+	ambarella SOC watchdog
+	去掉: 使用外部看门狗 isl88013
+
+* ambarella_power_supply 
+	用于锂电池或 USB 供电驱动, a5 一般不会用到电池的，
+	默认配置中, 其驱动 pda_power.ko 是不会被编译的。
+	去掉
+
+b. ambarella_init_coconut 中设备结构体的修裁
+
+去掉 power_detect(901 == 862: 用于休眠唤醒)
+去掉 debug_led0(901 == 862)
+	此结构体只用于把成员值输出到 
+	/sys/module/ambarella_config/parameters
+	在 S11init 脚本中对其控制如下
+	# Turn on LED
+	debug_led0_id=$(cat $config_dir/board_debug_led0_gpio_id)
+	if [ "$(cat $config_dir/board_debug_led0_active_level)" = "0" ]; then
+		debug_led0_level="low"
+	else
+		debug_led0_level="high"
+	fi  
+	echo $debug_led0_id > /sys/class/gpio/export
+	echo $debug_led0_level > /sys/class/gpio/gpio$debug_led0_id/direction
+	echo $debug_led0_id > /sys/class/gpio/unexport
+
+去掉 touch_panel & lcd(901 == 862)
+去掉 flash, 闪光灯控制(901 == 862, 一般用于相机)
+保留 rs485(901 == 862)
+保留 vin0(demo == 862 != 901)
+保留 SD(901 != demo != 862)
+	901 带 TF 卡，但是不支持 ext_power, cd(c-detect 插卡检测), wp 功能
+	去掉相应的 GPIO 设置部分
+eth0 在 862 上的修改：
+	ambarella_eth0_platform_info.mii_reset.gpio_id = GPIO(7);
+	// 901: ambarella_eth0_platform_info.mii_reset.gpio_id = GPIO(93);
+	ambarella_eth0_platform_info.mii_id = 32;
+
+c. ambarella_init_coconut 中总线设备的注册
+
+注册的结构体都没用到 gpio(901 == 862)
+	注册 spi 设备以作扩展
+	注册 vin_info
+	保留 hdmi_info 以作扩展
+	去掉 touch_panel & lcd
+	去掉 isl12022m & rtc0
+	去掉 input 子系统
+		同时需要去掉 rootfs/device_table.txt 中的 /dev/input 目录
+		同时需要去掉 rootfs/device_table.txt 中的 /dev/psaux
+	去掉 wm8737
+		音频解码卡: 901 现在使用的是 AIC3104
+
+d. 对 wifi 和 audio codec, 现在可以不予理睬
+
+----------
+* * make menuconfig
+切换到 SDK ambarella 目录下：
+a, 在 Makefile 的  prepare_fs: check_env .config 下面添加
+	ln -sf $(AMBABUILD_TOPDIR)/rootfs/init.d/a5sipcam rootfs/init.d/coconut
+	ln -sf $(AMBABUILD_TOPDIR)/amboot/bsp/a5sipcam amboot/bsp/coconut
+b, 对 menuconfig 的配置参考下面:
+	$ make a5s_ipcam_1gb_720p_config
+	$ make menuconfig
+c, 特殊说明：
+   i. avahi 是基于zeroconf 协议的一组应用，可自动获得 ip，
+   域名...如果开启 avahi-daemon 的话，eth0 是无法关闭的！
+   这时也就无法设置 mac 地址(会出现 oops)
+   关闭它不影响 nfs, tftp, telnet.
+   ii. busybox 的 watchdog 程序可以喂狗，-t 参数后面跟的是秒数
+
+Board ---> COCONUT
+
+Ambarella Firmware Configuration ---> 
+	FIO Subsystem Options ---> NAND Flash Type ---> Samsung K9F1G08U0B
+	AMBoot (boot loader) ---> 
+		DRAM Type ---> DDR2 
+		[*] Automatically boot up the system after firmware programming
+
+Ambarella File System Configuration ---> 
+	[ ] Add wireless tools into root_fs
+	[ ] Add Atheros wifi app and FW into root_fs
+	[ ] Add avahi support 
+	[*] Add watch dog support
+
+Ambarella Linux Configuration ---> Ambarella Private Linux Configuration 
+	---> 去掉所有 wifi 驱动.
+	---> Video Input Configuration 
+		---> Ambarella Sersor Configuration --->
+			Micron MT9P006 5MHD+ CMOS sensor 
+			Micron MT9M033 1.2M CMOS sensor
+			Micron MT9T002 3.4M CMOS sensor(Hispi Output)
+			Micron AR0331 3.1M CMOS sensor(Hispi Output)
+			Omnivison OV2710 2M CMOS sensor parallel.
+			Sony IMX035 1.3M CMOS sensor.
+			Sony IMX036 3.1M CMOS sensor.
+		---> Ambarella TV decoder Configuration
+			---> 默认(非 sensor VIN)
+	---> Video IAV configs
+		---> [*] IAV functions limited for 1GB System memory
+
+Ambarella Package Configuration ---> Code Optimization(a5s55 是AMRv6) 
+	(BSReader motion-detect textinsert)
+----------
+* * make menuconfig_public_linux
+
+a. 修改 arch/arm/mach-ambarella/Kconfig 文件
+	config MACH_COCONUT
+		bool "Coconut"
+		depends on PLAT_AMBARELLA_A5S
+		default n
+		select AMBARELLA_VIN
+		select AMBARELLA_VOUT
+		#select TOUCH_AMBARELLA_AK4183
+		#select TOUCH_AMBARELLA_TM1510
+		#select TOUCH_AMBARELLA_TM1927
+		#select RTC_AMBARELLA_IS112022M
+		help
+		  Say Y here if you are using A5S Coconut.
+
+b. 切换到 SDK ambarella 目录下：
+	$ make defconfig_public_linux
+	$ make menuconfig_public_linux
+对 menuconfig 的配置参考下面:
+
+General setup ---> [*] Configure standard kernel features (expert users)
+
+System Type ---> Generic Platform Configure ---> Proc file system support
+	[*] Ambarella GPIO proc support
+	[*] Ambarella ADC proc support
+	[*] Ambarella PWM proc support
+System Type --->
+	[ ] Generic
+	[*] Coconut
+	[ ] Durian
+System Type ---> Misc on Board Devices  --->
+	去掉 Suport Vin 和 Suport Vout 之外的所有选项
+
+如果不支持 SD，那么需要修改下面选项的 /dev/mmcblk0p1
+Power management options  --->
+	(/dev/mmcblk0p1) Default resume partition
+
+[*] Networking support --->
+	< > Bluetooth subsystem support
+	[ ] Wireless ---> 将来支持 wifi, 此时先清空，留待以后版本
+
+Device Drivers ---> 
+	[*] Misc devices  --->
+	[*] Network device support ---> [ ] Wireless LAN --->
+	
+	Character devices ---> [ ] Virtual terminal(没有鼠标和lcd所以去掉)
+	Input device support ---> 
+		< > Generic input layer (needed for keyboard, mouse, ...)
+
+	<*> Hardware Monitoring support --->
+		< > National Semiconductor LM73(使用汉邦提供)
+
+	[*] Watchdog Timer Support ---> < > Ambarella watchdog
+
+	Graphics support --->
+		<*> Support for frame buffer devices 
+			---> <M> Ambarella Framebuffer support
+		[*] Backlight & LCD device support --->(adc 使用)
+
+	<M> Sound card support ---> <M> Advanced Linux Sound Architecture
+	---> <M> ALSA for SoC audio support --->
+		<M> SoC Audio for the Ambarella chips
+		<M> Ambarella Board Type --->
+			< > A5SEVK Board [With AK4642 Codec]
+			< > A5s PA2 board [with WM8737 Codec]
+			<M> Ambarella Dummy Board [With Dummy Codec]
+
+	[*] USB support ---> <M> USB Gadget Support --->
+		USB Peripheral Controller (Ambarella USB Device Controller) --->
+		<M> Ethernet Gadget (with CDC Ethernet support)
+		<M> File-backed Storage Gadget
+		<M> Serial Gadget (with CDC ACM and CDC OBEX support)
+		<M> Gadeget Ambarella Data Streaming
+
+	<M> MMC/SD/SDIO card support ---> 默认就好
+
+	<*> Real Time Clock  --->
+		[ ] Set system time from RTC on startup and resume
+			开机时并未注册 RTC 设备，这个 sync 可以通过脚本实现
+		[ ] Android alarm driver
+		< > Intersil ISL12022
+		< > Ambarella SoC RTC
+----------
+* * 非 0 属性模块参数
+
+ambarella 所以的非 0 属性模块参数不与具体驱动绑定，
+而是统一放于 /sys/module/ambarella_config/parameters.
+这是一种方便用户，但不利于维护的方式。即使平台上
+没有加载对应的驱动，这些参数仍然存在，这时对其读
+写就会发生错误。平台硬件变化后，应该对其统筹修改，
+但只要你不读写这些参数，就不会有问题，建于开发时间
+的要求，临时没有动它。
+------------------------------------------------------------
+* ------ filesystem
+
+busybox 选择 Prebuild：
+$ source build/env/CodeSourcery.env
+$ make menuconfig
+
+* Ambarella File System Configuration ---> Busybox (Prebuild)
+  如此则会解压 arm-none-linux-gnueabi 下的 busybox 作为默认的
+  fakeroot 目录. 此压缩包已经修改过: 
+  a. hostname issue 改为 HanBang
+  b. 用 localtime 代替 TZ：TZ 是用 uclibc 方式编译 Busybox 时，
+     指定时区的方式
+  c. ambrwfs 中，直接指定 ROOTFS_RO="ro", 并添加：
+	mkdir /tmp/etc
+	cp -a /etc/* /tmp/etc
+	mount --bind /tmp/etc /etc
+  d. passwd 中，指定 root 使用 bash
+  e. inittab 中，添加 null::sysinit:/bin/mount -t ubifs ubi1:logs /home/defaut
+
+
+* Ambarella File System Configuration ---> System Configuration  --->
+	[*] Add init.d
+  		[*] Add shared init.d
+	[*] Add script
+  Add init.d 拷贝 board/$(BST_STR)/init.d/* 到 fakeroot/etc/init.d
+  Add shared init.d 拷贝 rootfs/init.d/* 到 fakeroot/etc/init.d
+  Add script 拷贝 rootfs/script/* 到 fakeroot/usr/local/bin
+
+* Ambarella File System Configuration ---> Libraries  --->
+	[*] Add libstdc++ libraries into root_fs
+	-*- Add zlib into root_fs
+	-*- Add expat xml parse library into root_fs
+	[ ] Add OpenSSL library into root_fs
+	[ ] Add ca-certificates files into root_fs
+	[ ] Add libsamplerate library into root_fs
+	-*- Add ncurses library into root_fs
+
+* Ambarella File System Configuration ---> Network/BlueTooth Packages  --->
+	[ ] Add Avahi support 
+	[ ] Add Web Server Support
+
+干掉的库：
+  a. 鉴于文件系统的精简，在此不选音频 codec 库, 重采样库: 
+  speex libsamplerate libsndfile iperf ogg ORC; 这会导致
+  alsa-utils 有些功能不能用。 
+  b. openssl 是一安全网络通信软件，依赖于 libcrypto, libssl 
+  去掉这 3 个库。
+  c. 干掉 avahi 和 IpcamControlServer
+保留的库：
+  a. libasound 及其依赖 libncurses 库是必须选的。
+  b. libnss*  libresolv* 被 dns 依赖，保留
+  c. dbus 被 image_server 依赖，保留。
+  d. libpython 被 mediaserver 依赖，测试阶段要保留。
+  e. WebSvr 及其依赖的 libpython 在测试阶段保留。
+  f. libstdc++ 被 mediaserver 依赖，测试阶段保留。
+
+* 去掉 rootfs/device_table.txt 中的 /dev/input 和 /dev/psaux 项
+------------------------------------------------------------
+----------
+* * 嵌入式常用库
+
+catchsegv 当程序发生segmentation fault的时候, 用来建立一个堆栈跟踪。
+gencat 建立消息列表。
+getconf 针对文件系统的指定变量显示其系统设置值。
+getent 从系统管理数据库获取一个条目。
+glibcbug 建立glibc的bug报告并且email到bug报告的邮件地址。
+iconv 转化字符集。
+iconvconfig 建立快速读取的iconv模块所使用的设置文件。
+ldconfig 设置动态链接库的实时绑定。
+ldd 列出每个程序或者命令需要的共享库。
+lddlibc4 辅助 ldd 操作目标文件。
+locale 是一个 Perl 程序，可以告诉编译器打开或关闭内建的locale支持。
+localedef 编译locale标准。
+mtrace...
+nscd 提供对常用名称设备调用的缓存的守护进程。
+nscd_nischeck 检查在进行NIS+侦查时是否需要安全模式。
+pcprofiledump 打印PC profiling产生的信息。
+pt_chown 是一个辅助程序，帮助grantpt设置子虚拟终端的属主，用户组和读写权限。
+rpcgen 产生实现RPC协议的C代码。
+rpcinfo 对RPC服务器产生一个RPC呼叫。
+sln 用来创建符号链接，由于它本身是静态连接的，在动态连接不起作用的时候，sln仍然可以建立符号链接。
+sprof 读取并显示共享目标的特征描述数据。
+tzselect 对用户提出关于当前位置的问题,并输出时区信息到标准输出。
+xtrace 通过打印当前执行的函数跟踪程序执行情况。
+zdump 显示时区。
+zic 时区编译器。
+ld. so 帮助动态链接库的执行。
+libBrokenLocale 帮助程序处理破损locale，如Mozilla。
+libSegFault 处理 segmentation fault 信号，试图捕捉segfaults。
+libanl 异步名称查询库。
+libbsd-compat 为了在linux下执行一些BSD程序,libbsd-compat提供了必要的可移植性。
+libc 是主要的C库--常用函数的集成。
+libcrypt 加密编码库。
+libdl 动态连接接口。
+libg g++的运行时。
+libieee IEEE浮点运算库。
+libm 数学函数库。
+libmcheck 包括了启动时需要的代码。
+libmemusage 帮助 memusage 搜集程序运行时内存占用的信息。
+libnsl 网络服务库。
+libnss* 是名称服务切换库，包含了解释主机名，用户名，组名，别名，服务，协议等等的函数。
+libpcprofile 帮助内核跟踪在函数, 源码行和命令中CPU使用时间。
+libpthread POSIX 线程库。
+libresolv 创建,发送及解释到互联网域名服务器的数据包。
+librpcsvc提供RPC的其他服务。
+librt 提供了大部分的POSIX.1b实时扩展的接口。
+libthread_db 对建立多线程程序的调试很有用。
+libutil 包含了在很多不同的 Unix程序中使用的“标准”函数。
+
+通用类
+zlib-压缩算法; ncurses-文本终端的图形库，mysql、python 用到它;
+openssl-密码算法库、SSL协议库以及应用程序
+
+图像类
+jpeg-用于jpeg图像处理; png-用于PNG图像显示; tiff-tiff格式显示
+ 
+音频类
+mad; id3tag-读取mp3信息; ogg-一种音频解码格式
+
+字体类
+iconv-用于文字编码转换; freetype-开源高质理字体显示库
+------------------------------------------------------------
+* ------ others
+
+1, make prepare_fs:  创建 fakeroot 目录，根据 config 把
+arm-none-linux-gnueabi 中指定的包解压到 fakeroot 下特定
+的目录中，并书写脚本。
+make fs: 把 fakeroot 文件夹制作成镜像。
+make -C rootfs clean: 删除镜像和fakeroot文件夹
+
+2, make link_arch: 创建些许文件夹的链接，
+make unlink_arch: 是删除这些链接。
+
+3, make fw: 编译 amboot，并生成各 elf 和 bin。
+
+4, make clean: clean_linux
+make -C xxx
+xxx 代表 
+	scripts/kconfig/config clean
+	rootfs clean
+	build clean
+	unit_test clean
+	app clean
+	mw clean
+	packages clean
+
+5, make distclean: clean distclean_linux unlink_arch
+	rm -rf .config* config.h
+------------------------------------------------------------
+* ------ Driver
+
+* 在 a5 上 gpio_request_one 可用来独占某 GPIO 资源，
+但即使申请了独占，应用程序仍可通过 /proc/ambarella/gpio 
+来控制某 GPIO.
+
+* arch/arm/plat-xxx/include 也被 -I 选中
+
+*
+r0 必须是 0; 
+r1 必须是 ARM Linux machine type (u32) 
+r2 必须是 kernel parameter list 的物理地址
+我们可以定义多个 MACHINE_START, 这些定义的 MACH 会被放在
+.arch.info.init, linux 启动过程中会把这些 MACH 与 R1 比较，
+一旦匹配就得到了真实 MACH. 这个过程在汇编阶段就已经完成。
+
+* ambarella 复位：拉低各器件的复位管脚，然后拉高。
+复位后 soc 各管脚有默认的高低电平，用来选择不同的模式，
+一般在硬件手册里有说明，如果硬件设计不合适，可能出现
+不能 boot 的现象，hb862w 开始时就出现了这种现象，
+bootbypass(一种启动方式, 跳过nand启动，通过其他方式)
+应为低，实际却是高，所以要按两次复位键才能启动。
+isl88013 通过 !RST 开始一个 51s Twdt. 加个弱下拉电阻 OK
+
+* amba ADC 不能 4 通道全悬空，否则某管脚的
+电平会影响到悬空管脚。
+
+* amba idc 控制器：
+写入或者读取 data 寄存器，配置控制寄存器，然后等待中断。
+
+* iris
+自动光圈除了一组驱动线圈还有一组阻尼线圈，阻尼线圈是
+连一个霍尔电流传感器的当你驱动光圈打开时，由于阻尼作
+用，你的光圈会缓慢打开；当然，驱动光圈关闭时也是缓慢
+关闭，和汽车车门一个道理。你通过输出PWM进过DA后驱动光
+圈，用占空比控制驱动力大小，然后阻尼线圈会采样驱动线
+圈的电流，给AD，这样通过查表得知当前光圈的大小至于说
+如何让光圈固定：由于光圈的打开或缩小在阻尼的作用下是
+个缓慢的过冲，因此，比如说我想让光圈定在中间的位置，
+那么查表得知在中间位置时我霍尔采样到的电流为10ma，当
+AD 采样到大于10ma时，减小PWM占空比，然后又会采样到小
+于10ma电流，这时增大 PWM 的占空比，如此往复。就定住了
+你可以想象，光滑的平台中间有个重量很大的大铁球，假如
+你用磁铁在它左边吸引一下，一会又在它右边吸引一下，当
+频率很快时。由于惯性作用，这个铁球会在原地不动的
+
+得出结论：
+如果是自动光圈，必须有霍尔，
+如果要定住，PWM必是时刻变化的
+
+* gpio pullup
+上拉寄存器是控制对应端口上拉使能的。当对应位为0时，设
+置对应引脚上拉使能，为1时，禁止对应引脚上拉使能。如果
+上拉寄存器使能，无论引脚功能寄存器如何设置（输入，输
+出，数据，中断等），对应引脚输出高电平。
+PS:
+上拉是一个电阻接到一个电压，其实就是增强IO的驱动能力。 
+下拉是一个电阻接到地，保证IO口是低电平。
+开漏输出0时为低电平，输出1时为高阻状态。开漏输出有2个
+好处，1你可以设计适合自己的电流驱动能力，驱动LED、喇
+叭时很有效；2你可以提高输出高电位电压值，如通过电阻接
+12V，你的高电平就是12V了
+
+推挽模式：输出 0 时，N-MOS 导通，P-MOS 高阻，输出0。
+输出 1 时，N-MOS 高阻，P-MOS 导通，输出1（不需要外部上拉电路）
+
+关于GPIO的上电复位后默认输出电平的影响
+如果需要GPIO对某个模块的控制，比如振动马达的震动使能控
+制，LCD的背光使能控制，闪光灯的使能控制，耳机和喇叭功
+率放大器的输出控制。这些模块都比较敏感。如果GPIO的选择
+不恰当就会引起上电的时候，CPU复位后代码还没有执行到GPIO
+的初始化模块的前面一段时间就会引起模块不稳定。ARM的GPIO
+每个GPIO都有一个复位默认状态，有些GPIO上电复位后默认上
+拉，有些是下拉，有些是没有上拉和下拉。所以设计各个子
+模块的时候，要根据模块的使能控制硬件引脚的有效电平去
+选择相应的GPIO引脚，保证ARM处理器上电复位后，它的默认
+输出电平能够将子模块设置到无效状态。否则模块就会上电
+的时候不稳定。比如，上电的时候马达乱震动，LCD屏幕还没
+有初始化就打开背光引起屏幕闪动，上电过程闪光灯乱闪，
+上电过程耳机有啪啪的杂音，喇叭有啪啪声。
+
+*1-wire协议
+　　作为一种单主机多从机的总线系统，在一条1-Wire总线上
+可挂接的从器件数量几乎不受限制。为了不引起逻辑上的冲
+突，所有从器件的1-Wire总线接口都是漏极开路的，因此在
+使用时必须对总线外加上拉电阻（一般取5kΩ 左右）。主机
+对1-Wire总线的基本操作分为复位、读和写三种，其中所有
+的读写操作均为低位在前高位在后。
+
+1-Wire总线的复位
+复位是1-Wire总线通信中最为重要的一种操作，在每次总
+线通信之前主机必须首先发送复位信号。产生复位信号时主机
+首先将总线拉低480～960μs然后释放，由于上拉电阻的存在，
+此时总线变为高电平。1-Wire总线器件在接收到有效跳变的
+15～60μs内会将总线拉低60～240μs，在此期间主机可以通过
+对DQ采样来判断是否有从器件挂接在当前总线上。函数Reset()
+的返回值为0表示有器件挂接在总线上，返回值为1表示没有
+器件挂接在总线上。
+uchar Reset(void)
+{
+	uchar tdq;
+	DQ=0; /* 主机拉低总线 */
+	delay480μs(); /* 等待480μs */
+	DQ=1; /* 主机释放总线 */
+	delay60μs(); /* 等待60μs */
+	tdq=DQ; /* 主机对总线采样 */
+	delay480μs(); /* 等待复位结束 */
+	return tdq; /* 返回采样值 */
+}
+
+1-Wire总线的写操作
+向1-Wire总线写1bit至少需要60μs，同时还要保证两次连续
+的写操作有1μs 以上的间隔。若待写位 wbit为0则主机拉低
+总线60μs然后释放，写0操作完成。若待写 位wbit为1，则主
+机拉低总线并在1～15μs内释放，然后等待 60μs，写1操作完成
+void Writebit(uchar wbit)
+{
+	_nop_(); /* 保证两次写操作间隔1μs以上 */
+	DQ=0;
+	_nop_(); /* 保证主机拉低总线1μs以上 */
+	if(wbit)
+	{
+		/* 向总线写1 */
+		DQ=1;
+		delay60μs();
+	}
+	else
+	{
+		/* 向总线写0 */
+		delay60μs();
+		DQ=0;
+	}
+}
+
+1-Wire总线的读操作
+从1-Wire总线读取1bit同样至少需要60μs，同时也要保证
+两次连续的读操作间隔1μs 以上从总线读数据时，主机首
+先拉低总线1μs以上然后释放，在释放总线后的1～15μs内
+主机对总线的采样值即为读取到的数据
+uchar Readbit()
+{
+	uchar tdq;
+	_nop_();
+	DQ=0;
+	_nop_();
+	DQ=1;
+	_nop_();
+	tdq=DQ;
+	/* 主机对总线采样 */
+	delay60μs();
+	/* 等待读操作结束 */
+	return tdq;
+	/* 返回读取到的数据 */
+} 
+
+1-wire 都是漏极开路，需要 5 偶左右的上拉电阻
+------------------------------------------------------------
+-----------------------------------------------------------
+
+问题：
+1, avahi 开启时，动态设置 mac：
+/etc/init.d/S98avahi-daemon stop
+ifconfig eth0 down
+ifconfig eth0 hw ether xx:xx:xx:xx:xx:xx
+ifconfig eth0 up
+
+2, 系统不稳定，频发 oops
+内存配置问题，现在已解决
+
+3. 启动或运行时，提示 nand 错误:
+amboot 里运行 diag nand erase，然后重烧。
+
+
+
+

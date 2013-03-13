@@ -1,4 +1,4 @@
-#!/bin/sh
+#! /usr/bin/gvim
 
 # --------- Setup your system
 
@@ -71,7 +71,7 @@ $ mkfontdir
 $ fc-cache -fv
 (note:
 mkfontdir: 搜索所用字体文件，去其后缀作为字体名，并把字体
-名、字体文件、参数写入到font.dir 供 X 服务器使用
+名、字体文件、参数写入到 font.dir 供 X 服务器使用
 fc-cache -fv: 刷新字体缓存
 fc-list: 查看已安装的字体
 )
@@ -272,7 +272,7 @@ $ time dd if=/dev/hda of=disk.mbr bs=512 count=1
 real    0m 30.10s
 user    0m 0.01s
 sys     0m 4.73s
-(note: user+sys 占用的 cpu 时间, real 总时间(cpu + dma + .))
+(note: user+sys 占用的 cpu 时间, real 总时间(cpu + dma))
 
 $ date -s 1982-08-12
 $ date -s 18:30:00
@@ -293,7 +293,7 @@ $ cp /root/{a,b} /root/dir/
 $ cp fs2410_kernel_2614.[I,W]?? /tmp
 (note: cp support RE)
 
-$ cp /etc/fonts/conf.d/49-sansserif.conf
+$ rm /etc/fonts/conf.d/49-sansserif.conf
 (*note: Solve chinese confusion code in evince)
 
 EABI: Embedded application binary interface
@@ -487,9 +487,346 @@ so Wally in our example will pass the pre-git check.)
 )
 
 
-# --------- Shell Basic
+# --------- Shell
 
 ------------------------------------
+* --- Sha-Bang
+  '#!' 实际上是一个 2byte 的幻数(幻数用以指明文件类型)
+'#!' 指明文件为可执行文件. 其后紧跟一个路径名, 他是用来
+执行此脚本的命令(可以是 shell, gcc, 或者是 utility). 如
+果脚本没有使用 bash 内建规则, 可以省略 '#!'
+
+
+# --------- menuconfig
+
+------------------------------------
+* --- start-up
+init 进程首先进行一系列的硬件初始化, 然后通过命令行
+传递过来的参数挂载根文件系统. 最后 init 进程会根据
+"init" 启动参数启动第一个用户进程, 如果没有 init=noinitrd
+就会按序搜素: /sbin/init /etc/init /bin/init /bin/sh
+
+* --- General setup
+Automatically append version information to the version string
+在版本字符串后添加版本信息, 编译时需有 perl 及 git 仓库支持
+
+Support for paging of anonymous memory (swap)
+支持 swap 分区
+
+System V IPC
+System V 进程间通信(IPC)支持, 许多程序需要这个功能. 必选.
+
+BSD Process Accounting
+将进程的统计信息写入文件的用户级系统调用, 包括进程的创
+建时间/创建者/内存占用等信息.
+$ accton /var/account/pacct
+$ sa -u
+$ accton # stop
+root       0.00 cpu      466k mem accton           
+root       0.01 cpu     2082k mem sudo 
+
+Export task/process statistics through netlink (N)
+通过通用的网络输出进程的相应数据到用户空间, 进程通信的
+一种(taskstats), 参考 Documents/accounting/getdelays.c.
+
+Auditing support
+记录文件的所有访问和修改, selinux 用以跟踪 audit, 确认访
+问授权
+
+Control Group support (N)
+cgroups 支持, cgroups 主要作用是给进程分组, 并可以动态调
+控进程组的 CPU 占用率. 比如给予 apple 组 20% CPU占用率.
+
+Kernel->user space relay support (formerly relayfs) (N)
+在某些文件系统上(如 debugfs)提供从内核空间向用户空间传
+递大量数据的接口.
+
+Configure standard kernel features (4 small systems) (Y)
+  Enable 16-bit UID system calls
+  允许对 UID 系统调用进行过时的 16bit 包装
+
+  Sysctl syscall support
+  不需重启就能修改内核的某些参数和变量, 从 /proc/sys 存取
+  可以影响内核行为的参数或变量
+
+  Load all symbols for debugging/kksymoops
+  装载所有的调试符号表信息, 仅供调试时选择
+    Do an extra kallsyms pass
+    除非你要报告 kallsyms 中的 bug 才打开
+
+  Support for hot-pluggable devices
+  支持热插拔设备, 如 usb, udev 也需要它
+
+  Enable support for printk
+  允许内核向终端打印字符信息
+
+  BUG() support
+  显示故障和失败条件(BUG和WARN)
+
+  Enable ELF core dumps
+  内存转储支持, 可以帮助调试 ELF 格式的程序
+
+  Enable full-sized data structures for core
+  禁用它将减小某些内核数据结构, 但会降低性能
+
+  Enable futex support
+  快速用户空间互斥体可以使线程串行化以避免竞
+  态条件, 也提高了响应速度. 禁用它将导致内核
+  不能正确的运行基于 glibc 的程序
+
+  Enable eventpoll support
+  支持事件轮循的系统调用
+
+  Use full shmem filesystem
+  完全使用 shmem 来代替 ramfs. shmem 可以挂载为
+  tmpfs 供用户空间使用, 它比简单的ramfs先进许多
+
+Disable heap randomization
+随机堆会让堆的开发更加困难, 它同样会破坏传统的二进制
+文件(libc5), 这个选项使系统启动时变为禁止随机堆, 运行
+时可设 /proc/sys/kernel/randomize_va_space 为 2 来
+修改, 较新的发行版, 该项是安全的。
+
+Choose SLAB allocator (slub)
+slab 默认的, 它已经被证实在所有的环境中都工作得很好.
+slub 最小化了缓冲, 高效使用内存，还有加强的诊断(试新)
+
+Profiling support (N)
+提供一种检测代码运行效率的工具, 为 OProfile 所用。
+
+* --- Enable loadable module support
+Module versioning support
+支持其他内核编译的模块
+
+Source checksum for all modules
+模块(ko)中包含 MODULE_VERSION, 如果选中此项还会包含
+srcversion(源代码的 sum)
+
+* --- Enable the block layer
+Block layer SG support v4 (N)
+支持通用 scsi 块设备第 4 版
+
+Block layer data integrity support (N)
+一些储存设备允许额外信息的储存和找回, 以便保护数据
+此选项提供了相应的挂钩, 这可以用于文件系统中，以确
+保更好的数据完整性. 如果你的设备提供了 T10/SCSI 数
+据完整性域 或 T13/ATA 扩展路径保护功能, 选中.
+
+I/O Schedulers (CFQ)
+Deadline I/O scheduler
+保证对于既定的 IO 请求以最小的延迟时间响应,
+在数据库应用方面性能要比 CFQ 好
+CFQ I/O scheduler
+尝试为所有进程提供相同的带宽. 它将提供平等的工作环境,
+对绝大多数应用程序都有高性能的表现. 另外可改变
+/proc/sys/scsi/nr_requests 来适配 I/O 子系统
+
+* --- FIQ Mode Serial Debugger (N)
+调试 kernel 用, 不选
+
+* --- Bus support
+PCI Stub driver
+比如一个 e1000e 的网卡已和一个 e1000e 的驱动结合, 虚拟机又
+想自己驱动这个 e1000e 网卡, 使用PCI Stub 将这个 pci 设备跟
+目前绑定的驱动分离, 暂时由 PCI Stub driver 接管, 最后交给
+虚拟机. ARM 上有虚拟机? 所以不选.
+$ echo '8086 10f5' > /sys/bus/pci/drivers/pci-stub/new_id
+$ echo -n 0000:00:19.0 > /sys/bus/pci/drivers/e1000e/unbind
+$ echo -n 0000:00:19.0 > /sys/bus/pci/drivers/pci-stub/bind
+
+PCI IOV support
+SR-IOV 是一个 pcie 的扩展功能, 使得一个物理设备表现为
+多个虚拟设备虚拟设备的分配可通过设置设备的寄存器完成,
+每个虚拟设备都有自己独立的寄存器和 ID
+
+* --- Kernel Features
+Tickless System (Dynamic Ticks)
+传统 kernel 有一致命缺陷就是时间滴答周期性的发生, 不顾
+处理器正处于忙还是闲的状态. 如果处理器处于闲置, 它也会
+每隔一段周期去唤起正处于省电模式下的处理器. 耗电. 
+采用 tickless idle(空闲循环)的机制, 内核将会在 CPU 空闲
+时消除这个周期性的时间滴答, 但如果 CPU 频繁的被计时事件
+唤起, 那么空闲循环机制的优势将消失. 此选项致力于尽可能
+长时间的利用 tickless idle 机制
+
+High Resolution Timer Support
+开启高分辩率时钟支持. 如硬件不够好, 只是增加内核的尺寸
+
+Enable KSM for page merging
+查找相同的内存页合为一页, 然后映射到应用各自的空间, 并被
+标记为 copy-on-write, 写的时候再分为不同的页, 主要用于
+有多个虚拟机的系统.
+
+* --- File systems
+xxx POSIX Access Control Lists
+POSIX ACL, 可以更精细的针对每个用户进行访问控制
+
+xxx Security Labels
+安全标签支持可选的访问控制模块, 这些模块被例如 SELinux
+中的安全模块执行
+
+Quota support
+配额支持
+  Report quota messages through netlink interface
+  通过网络连接接口报告配额信息
+  Print quota warnings to console
+  在控制台打印配额警告(废弃不用)
+
+General filesystem local caching manager (N)
+Filesystem caching on files
+缓存文件系统, 用一个高速硬盘上的一个专用的文件系统来
+做缓存, 带动慢速硬盘, 主要用于网络文件系统. 需要上层
+软件套件的支持.
+参考 http://en.gentoo-wiki.com/wiki/CacheFS
+
+Pseudo filesystems 
+  Userspace-driven configuration filesystem (N)
+  基于 ram 的文件系统, 它提供与 sysfs 相对应的功能.
+  是一个管理内核对象的文件系统, 或者配置系统
+  参考 https://www.ridgerun.com/developer/wiki/index.php/How_to_use_configfs
+
+* --- Networking options
+Packet socket
+直接与网络设备通讯, 而不通过内核中的其它中介协议, 一些
+应用程序是使用它实现的(如 tcpdump, iptables)
+
+Unix domain sockets
+仅运行于本机上的效率高于 TCP/IP 的Socket, 简称 Unix socket.
+许多程序都使用它在操作系统内部进行进程间通
+信(X-Window syslog)
+
+PF_KEY sockets
+IPsec 协议族一员, 要使用 IPsec 须选该项, 一般可不选该项
+
+IP: kernel level autoconfiguration
+使用 nfs 启动必选, 支持从 cmdline 或其后所随的 3 个协议
+来确定自身 IP, Root file system on NFS 依赖于它. 参考
+Documentations/filesystems/nfs/nfsroot.txt
+
+
+* --- Device Drivers 
+Generic Driver Options
+  Path to uevent helper (N)
+  每个 uevent kernel 都会调用此脚本, 在 netlink-based uevent
+  之前, 它用来处理 uevent 时间, 因系统启动或设备加载时会产
+  生大量 uevent, 负荷太重, 现在已经舍弃 
+
+  Maintain a devtmpfs filesystem to mount at /dev 
+  Automount devtmpfs at /dev, after the kernel mounted the rootfs (NEW)
+  在所有设备文件注册前, 生成一个 tmpfs. 为每个拥有
+  major/minor 的设备在此 tmpfs 上生成一个节点. 当文件
+  系统挂载后, 此 tmpfs 被 mount 到 /dev. 此文件系统可
+  在用户空间被任意修改, 这使得 init=/sbin/sh 不需额外
+  支持就能工作正常. 系统启动后 udev daemon 会启动并聆
+  听来自 Linux 核心的 uevent.
+
+Connector - unified userspace <-> kernelspace linker (N)
+连接器是一种 netlink, 协议号为 NETLINK_CONNECTOR, 与一般
+的内核 netlink 接口相比, 它更容易使用
+
+Memory Technology Devices (MTD)
+  MTD concatenating support
+  将并置的几个 MTD 设备整合成一个(虚拟的)设备. 就如一个
+  一样操作, 分区.
+
+  Direct char device access to MTD devices
+  直接字符设备到 MTD 设备的访问, /dev/mtdN
+
+  Caching block device access to MTD devices
+  大部分 mtd 设备的 erase_size 都很大, 因此不能当作块设备
+  使用, 所以此接口并不安全 /dev/mtdblockN
+
+  FTL (Flash Translation Layer) support 
+  在 flash 上使用某种伪文件系统, 模拟一个 521-byte sector 的
+  块设备. 在 flash 上架 fat16/fat32/ntfs/ext2 文件系统时才需
+  要选上. 否则 ftl_cs:FTL header not found. 
+  NFTL(same but nand), INFTL(same but DiskOnChip)
+
+  Resident Flash Disk (Flash Translation Layer) support
+  提供RFD支持, 为嵌入式系统提供类似 BIOS 功能
+
+  NAND SSFDC (SmartMedia) read only translation layer
+  SmartMedia/xD new translation layer
+  类似 FTL 的另一种模拟块设备支持  
+
+  Mapping drivers for chip access (N)
+  把 norflash 映射到内存空间, 读写时可用 memcpy 等
+
+  Include chip ids for known NAND devices
+  为不使用 nand 子系统的驱动提供 nand ids
+
+Block devices
+  Compaq SMART2 support (N)
+  基于 Compaq SMART2 控制器的磁盘阵列卡, 一般没有, 加载
+  驱动后, 生成 /dev/idaN 节点.
+
+  Compaq Smart Array 5xxx support
+  基于 Compaq SMART 控制器的磁盘阵列卡
+
+  Mylex DAC960/DAC1100 PCI RAID Controller support
+  古董级产品
+
+  Micro Memory MM5415 Battery Backed RAM support
+  一种使用电池做后备电源的内存
+
+  Loopback device support
+  Loopback 是指拿文件来模拟块设备, 比如可以将一个
+  iso 文件挂成一个文件系统, mount -o loop abs.iso /mnt/tmp
+
+  Network block device support
+  让你的电脑成为网络块设备的客户端
+
+  Promise SATA SX8 support
+  基于 Promise 公司的 SATA SX8 控制器的 RAID 卡
+
+  Low Performance USB Block driver
+  它不是用来支持 U 盘的,不懂的就别选
+
+  RAM disk support
+  内存中的虚拟磁盘,大小固定(由下面的选项决定), 它的
+  功能和代码都比 shmem 简单许多
+    Default number of RAM disks
+    Default RAM disk size (kbytes)
+    Default RAM disk block size (bytes)
+
+  Packet writing on CD/DVD media
+  CD/DVD 刻录支持
+    Free buffers for data gathering
+    用于收集写入数据的缓冲区个数(每个占用 64Kb 内存),缓冲区越多性能越好
+    Enable write caching
+    为 CD-R/W 设备启用写入缓冲, 目前这是一个比较危险的选项
+
+  ATA over Ethernet support
+  以太网 ATA 设备支持
+
+Character devices
+  Non-standard serial port support
+  非标准串口支持. 这样的设备早就绝种了
+  
+  Serial drivers
+  串口驱动.
+
+  Unix98 PTY support
+  PTY 模拟一个终端, 由 slave(等价于一个物理终端)和 master(被
+  一个诸如 telnet 之类的进程用来读写 slave 设备)两部分组成的
+  软设备. 使用 telnet/ssh 必选
+
+  Legacy (BSD) PTY support
+  过时的 BSD 风格的 /dev/ptyxx 作为 master, /dev/ttyxx 作为 slave,
+  这个方案有一些安全问题, 建议不选
+
+  RAW driver (/dev/raw/rawN)
+  已废弃
+
+  
+
+
+
+
+
+
+
+
 * --- File
 1. (cp / ln / mv) src des(Destination)
 
@@ -504,8 +841,8 @@ so Wally in our example will pass the pre-git check.)
 
 3. suid sgid
 进程在运行的时候，有一些属性，其中包括实际用户ID,
-实际组ID,有效用户ID,有效组ID等。 实际用户ID和实际
-组ID标识我们是谁，谁在运行这个程序,一般这2个字段
+实际组ID, 有效用户ID, 有效组ID等。 实际用户ID和实际
+组ID标识我们是谁，谁在运行这个程序, 一般这2个字段
 在登陆时决定，在一个登陆会话期间， 这些值基本上不改变。
 
 而有效用户ID和有效组ID则决定了进程在运行时的权限。
