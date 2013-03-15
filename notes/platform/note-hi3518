@@ -19,15 +19,19 @@ nand erase 100000 300000
 nand write 82000000 100000 300000
 
 setenv bootargs 'mem=64M console=ttyAMA0,115200 root=/dev/mtdblock2 rootfstype=jffs2 mtdparts=hinand:1M(boot),3M(kernel),12M(rootfs),112M(others)'
-
 setenv bootargs 'mem=64M console=ttyAMA0,115200 root=/dev/mtdblock2 rootfstype=jffs2 mtdparts=hisfc:1M(boot),3M(kernel),12M(rootfs),112M(others)'
 
 setenv ipaddr 192.168.9.2
 setenv serverip 192.168.9.1
+
+3516
+setenv bootargs 'mem=64M console=ttyAMA0,115200 root=/dev/nfs nfsroot=192.168.9.1:/home/nfs/rootfs6,proto=tcp,nolock ip=192.168.9.2:192.168.9.1:192.168.9.1:255.255.255.0:hbipc:eth0:off'
+setenv bootcmd 'tftp 0x82000000 uImage6;bootm 0x82000000'
+
+3518
 setenv bootargs 'mem=64M console=ttyAMA0,115200 root=/dev/nfs nfsroot=192.168.9.1:/home/nfs/rootfs,proto=tcp,nolock ip=192.168.9.2:192.168.9.1:192.168.9.1:255.255.255.0:hbipc:eth0:off'
-
-
 setenv bootcmd 'tftp 0x82000000 uImage;bootm 0x82000000'
+
 setenv bootcmd 'nand read 0x82000000 0x100000 0x300000;bootm 0x82000000'
 
 2. ------ transplant wifi
@@ -42,7 +46,7 @@ Device Drivers --->
     [*] Network device support --->
         [*] Wireless LAN --->
             <M> Atheros Wireless Cards --->
-                <M> Atheros 802.11n wireless cards support
+                < > Atheros 802.11n wireless cards support (pci)
                 <M> Atheros HTC based wireless cards support 
 
 b. Compile
@@ -60,7 +64,6 @@ insmod mac80211.ko
 insmod ath.ko
 insmod ath9k_hw.ko
 insmod ath9k_common.ko
-insmod ath9k.ko
 insmod ath9k_htc.ko
 
 3. ------ nfs 启动

@@ -254,6 +254,9 @@ set -e
 $ set -o vi
 (note: 设置 bash 使用跟 vi 相同的快捷键)
 
+$ minicom -c on 
+(note: minicom 支持彩色)
+
 *history
 $ cd -
 $ ls /home/git
@@ -285,6 +288,8 @@ $ find . -name *.c -print
 $ find . -regex '.*b.*3'
 (note: -regex 使用正则表达式)
 $ find . -inum 211028 -exec mv {} newname.dir \;
+
+# find . -name *.cpp | xargs -i grep "xxx" {} --color -RnH
 
 $ echo -en "\xaa\x10" > abc
 (note: write non ascii chars using echo, -n: not print '\n')
@@ -505,8 +510,9 @@ init 进程首先进行一系列的硬件初始化, 然后通过命令行
 传递过来的参数挂载根文件系统. 最后 init 进程会根据
 "init" 启动参数启动第一个用户进程, 如果没有 init=noinitrd
 就会按序搜素: /sbin/init /etc/init /bin/init /bin/sh
-
+------------------------------------
 * --- General setup
+
 Automatically append version information to the version string
 在版本字符串后添加版本信息, 编译时需有 perl 及 git 仓库支持
 
@@ -522,8 +528,8 @@ BSD Process Accounting
 $ accton /var/account/pacct
 $ sa -u
 $ accton # stop
-root       0.00 cpu      466k mem accton           
-root       0.01 cpu     2082k mem sudo 
+root       0.00 cpu      466k mem accton
+root       0.01 cpu     2082k mem sudo
 
 Export task/process statistics through netlink (N)
 通过通用的网络输出进程的相应数据到用户空间, 进程通信的
@@ -638,12 +644,13 @@ PCI IOV support
 SR-IOV 是一个 pcie 的扩展功能, 使得一个物理设备表现为
 多个虚拟设备虚拟设备的分配可通过设置设备的寄存器完成,
 每个虚拟设备都有自己独立的寄存器和 ID
-
+------------------------------------
 * --- Kernel Features
+
 Tickless System (Dynamic Ticks)
 传统 kernel 有一致命缺陷就是时间滴答周期性的发生, 不顾
 处理器正处于忙还是闲的状态. 如果处理器处于闲置, 它也会
-每隔一段周期去唤起正处于省电模式下的处理器. 耗电. 
+每隔一段周期去唤起正处于省电模式下的处理器. 耗电.
 采用 tickless idle(空闲循环)的机制, 内核将会在 CPU 空闲
 时消除这个周期性的时间滴答, 但如果 CPU 频繁的被计时事件
 唤起, 那么空闲循环机制的优势将消失. 此选项致力于尽可能
@@ -656,8 +663,9 @@ Enable KSM for page merging
 查找相同的内存页合为一页, 然后映射到应用各自的空间, 并被
 标记为 copy-on-write, 写的时候再分为不同的页, 主要用于
 有多个虚拟机的系统.
-
+------------------------------------
 * --- File systems
+
 xxx POSIX Access Control Lists
 POSIX ACL, 可以更精细的针对每个用户进行访问控制
 
@@ -679,13 +687,14 @@ Filesystem caching on files
 软件套件的支持.
 参考 http://en.gentoo-wiki.com/wiki/CacheFS
 
-Pseudo filesystems 
+Pseudo filesystems
   Userspace-driven configuration filesystem (N)
   基于 ram 的文件系统, 它提供与 sysfs 相对应的功能.
   是一个管理内核对象的文件系统, 或者配置系统
   参考 https://www.ridgerun.com/developer/wiki/index.php/How_to_use_configfs
-
+------------------------------------
 * --- Networking options
+
 Packet socket
 直接与网络设备通讯, 而不通过内核中的其它中介协议, 一些
 应用程序是使用它实现的(如 tcpdump, iptables)
@@ -702,16 +711,16 @@ IP: kernel level autoconfiguration
 使用 nfs 启动必选, 支持从 cmdline 或其后所随的 3 个协议
 来确定自身 IP, Root file system on NFS 依赖于它. 参考
 Documentations/filesystems/nfs/nfsroot.txt
+------------------------------------
+* --- Device Drivers
 
-
-* --- Device Drivers 
 Generic Driver Options
   Path to uevent helper (N)
   每个 uevent kernel 都会调用此脚本, 在 netlink-based uevent
   之前, 它用来处理 uevent 时间, 因系统启动或设备加载时会产
-  生大量 uevent, 负荷太重, 现在已经舍弃 
+  生大量 uevent, 负荷太重, 现在已经舍弃
 
-  Maintain a devtmpfs filesystem to mount at /dev 
+  Maintain a devtmpfs filesystem to mount at /dev
   Automount devtmpfs at /dev, after the kernel mounted the rootfs (NEW)
   在所有设备文件注册前, 生成一个 tmpfs. 为每个拥有
   major/minor 的设备在此 tmpfs 上生成一个节点. 当文件
@@ -719,6 +728,12 @@ Generic Driver Options
   在用户空间被任意修改, 这使得 init=/sbin/sh 不需额外
   支持就能工作正常. 系统启动后 udev daemon 会启动并聆
   听来自 Linux 核心的 uevent.
+  但作为挂载点的 /dev/pts 和 /dev/shm, 需手动创建 
+  (telnet 必需)
+  [/etc/inittab]
+  ::sysinit:/bin/mkdir /dev/shm
+  ::sysinit:/bin/chmod 1777 /dev/shm
+  ::sysinit:/bin/mkdir /dev/pts
 
 Connector - unified userspace <-> kernelspace linker (N)
 连接器是一种 netlink, 协议号为 NETLINK_CONNECTOR, 与一般
@@ -736,10 +751,10 @@ Memory Technology Devices (MTD)
   大部分 mtd 设备的 erase_size 都很大, 因此不能当作块设备
   使用, 所以此接口并不安全 /dev/mtdblockN
 
-  FTL (Flash Translation Layer) support 
+  FTL (Flash Translation Layer) support
   在 flash 上使用某种伪文件系统, 模拟一个 521-byte sector 的
   块设备. 在 flash 上架 fat16/fat32/ntfs/ext2 文件系统时才需
-  要选上. 否则 ftl_cs:FTL header not found. 
+  要选上. 否则 ftl_cs:FTL header not found.
   NFTL(same but nand), INFTL(same but DiskOnChip)
 
   Resident Flash Disk (Flash Translation Layer) support
@@ -747,7 +762,7 @@ Memory Technology Devices (MTD)
 
   NAND SSFDC (SmartMedia) read only translation layer
   SmartMedia/xD new translation layer
-  类似 FTL 的另一种模拟块设备支持  
+  类似 FTL 的另一种模拟块设备支持
 
   Mapping drivers for chip access (N)
   把 norflash 映射到内存空间, 读写时可用 memcpy 等
@@ -792,17 +807,37 @@ Block devices
   Packet writing on CD/DVD media
   CD/DVD 刻录支持
     Free buffers for data gathering
-    用于收集写入数据的缓冲区个数(每个占用 64Kb 内存),缓冲区越多性能越好
+    用于收集写入数据的缓冲区个数(每个占用 64Kb 内存),
+    缓冲区越多性能越好
     Enable write caching
     为 CD-R/W 设备启用写入缓冲, 目前这是一个比较危险的选项
 
   ATA over Ethernet support
   以太网 ATA 设备支持
 
+ATA/ATAPI/MFM/RLL support (DEPRECATED)
+内核引入了新的 ATA 驱动, 将 SATA/PATA 硬盘统一使用 /dev/sd?
+来表示了, 所以 /dev/hd? 就没有存在的必要了
+
+SCSI device support
+SCSI 接口是一个通用接口, 在 SCSI 母线上可以连接主机适配器
+和八个 SCSI 外设控制器, 外设包括磁盘/磁带/CD-ROM/打印机/
+扫描仪和通讯设备等
+
+Serial ATA and Parallel ATA drivers
+ATA 是关于 IDE(Integrated Device Electronics)的技术规范
+族.  最初, IDE 只是一项企图把控制器与盘体集成在一起为主
+要意图的硬盘接口技术. 随着 IDE/EIDE 日益广泛的应用, 全
+球标准化协议将该接口的技术规范归纳成为全球硬盘标准, 这
+样就产生了ATA. Serial ATA(SATA) 采用串行方式传输数据而
+得名. SATA 总线使用嵌入式时钟信号, 具备了更强的纠错能
+力, 提高了数据传输的可靠性. SATA 还具有结构简单, 支持热
+插拔的优点(硬盘性能: scsi > sata > ata)
+
 Character devices
   Non-standard serial port support
   非标准串口支持. 这样的设备早就绝种了
-  
+
   Serial drivers
   串口驱动.
 
@@ -817,14 +852,136 @@ Character devices
 
   RAW driver (/dev/raw/rawN)
   已废弃
+------------------------------------
 
-  
+# --------- Busybox
 
+------------------------------------
+Busybox Settings  --->
 
+  General Configuration  --->
+    [*] Enable obsolete features removed before SUSv3 (NEW)
+    Single UNIX Specification, 是一套 UNIX 系统的统一规格书.
+    扩充了 POSIX 标准, 定义了标准 UNIX 操作系统.
 
+    [*] Support --install [-s] to install applet links at runtime
+    busybox 中生成的命令一般都是到 /bin/busybox 的链接, 如果
+    我们开始没有创建这些链接, 可打开此项, 然后在 busybox 运
+    行时执行 busybox --install [-s] 来为所有编译进
+    /bin/busybox 的命令生成链接.
 
+    [*] Enable locale support (system needs locale 4 this to work)
+    编译时, busybox 会根据此宏选择字符判断等函数的实现
 
+    [*] Support Unicode
+      (767) Range of supported Unicode characters
+      中文在 Unicode 的位置最高到 U+2FA1D, 给一个大于 2FA1D
+      的值可显示中文
 
+      [ ]   Allow zero-width Unicode characters on output
+      [ ]   Allow wide Unicode characters on output
+      正常显示中文就不要选
+
+    [*] Support utmp file
+    生成 /var/run/utmp 以记录当前登录的用户, who 依赖于它.
+    [*]   Support wtmp file
+    生成 /var/run/wtmp 以记录用户登录登出的时间, last 依赖它.
+
+    [ ] exec prefers applets
+    优先运行 applets, 即使一个独立的命令存在. 不要选y
+
+  Busybox Library Tuning  --->
+    [ ] Enable systemd support
+    linux 系统和服务管理器, 支持并行化任务; 同时采用 socket
+    式与 D-Bus 总线式激活服务; 按需启动守护进程(daemon); 利
+    用 linux 的 cgroups 监视进程; 此管理器搭建起来比较复杂.
+    嵌入式上一般不用, 而是采用 Initscripts 方式. 所以不选
+
+    [*] Support RTMIN[+n] and RTMAX[-n] signal names
+    支持 kill, killall 中 RTMIN 和 RTMAX 信号名称, 占 250 字节
+
+    [*] Use termios to manipulate the screen
+    允许 more 等命令确定窗口大小, 否则显示混乱, 光标不移动
+
+    [*]   Fancy shell prompts
+    user@hostname currentpath 类式的命令提示符所需.
+
+    [*] Use clock_gettime(CLOCK_MONOTONIC) syscall
+    一些命令会用到准确时间, 不使用可能引发错误
+------------------------------------
+--- Applets
+
+Login/Password Management Utilities  --->
+  [*] Use internal password and group functions rather than system functions
+  [*]   Use internal shadow password functions 
+  busybox 接管 password/group, 将不能使用 PAM, 系统的
+  password/group 需要 /lib/libnss_* 库支持.
+
+  [*] login
+  [ ]   Run logged in session in a child process
+  [ ]   Support for PAM (Pluggable Authentication Modules)
+  可使用 pam.d 下的配置文件来控制登录
+
+Linux System Utilities  ---> 
+  [*] ipcrm
+  [*] ipcs 
+  两者通过 systemV 与内核通信, 读写进程信息
+  [*] pivot_root
+  切换根目录的挂载点
+  [*] rdate
+  使用 RFC868(包含于 inetd) 协议来同步时间和日期
+
+Miscellaneous Utilities  --->
+[*] crond
+[*]   Support option -d to redirect output to stderr
+[*]   Report command output via email (using sendmail)
+(/var/spool/cron) crond spool directory
+
+[*] crontab 
+[ ] inotifyd 
+
+Linux System Utilities  ---> 
+[*] acpid 
+acpid 用 poll 函数挂在/proc/acpi/event 文件上. 一旦总
+线事件列表(acpi_bus_event_list)上有电源管理事件发生,
+内核就会唤醒挂在 /proc/acpi/event 上的 acpid, acpid
+再从 /proc/acpi/event 中读取相应的事件.
+acpid与应用程序的通信方式有两种:
+1. 通过本地socket, 其文件名为/var/run/acpid.socket,
+应用程序只要连接到这个socket 上, 不用发送任何命令
+就可以接收到 acpid 转发的电源管理事件.
+2. 通过 /etc/acpi/events/* 配置文件. 在acpid 收到来自
+内核的电源管理事件时, 根据配置文件中的规则执行指定的
+命令. 配置文件在/etc/acpi/events/目录下
+------------------------------------
+
+[*] syslogd 
+[*] klogd 
+[*] dnsd 
+[*] ftpd 
+[*] httpd 
+[*] inetd
+[*] ntpd
+[*] telnetd
+[*] tftpd 
+[*] udhcp server (udhcpd)
+------------------------------------
+
+# --------- Filesystem
+------------------------------------
+
+链接		目标		链接类型	说明
+/dev/fd		/proc/self/fd	symbolic	必需
+/dev/stdin	fd/0		symbolic	必需
+/dev/stdout	fd/1		symbolic	必需
+/dev/stderr	fd/2		symbolic	必需
+/dev/core	/proc/kcore	symbolic	推荐	
+
+以下名称被保留用于挂载特殊的文件系统, 这些特殊的文件
+系统只提供内核界面而不提供标准的设备节点.
+/dev/pts devpts	PTY slave 文件系统
+/dev/shm tmpfs	提供对 POSIX 共享内存的直接访问
+------------------------------------
 
 
 * --- File
@@ -849,9 +1006,11 @@ Character devices
 SUID的优先级比SGID高，当一个可执行程序设置了SUID，
 则SGID会自动变成相应的egid
 
-[root@sgrid5 bin]# ls -l passwd
-
 [root@beauty ~]# ls -l /usr/bin/passwd
 -rwsr-xr-x 1 root root 25980 2月  22 2012 /usr/bin/passwd
 
-虽然你以test登陆系统，但是当你输入passwd命令来更改密码的时候，由于 passwd设置了SUID位，因此虽然进程的实际用户ID是test对应的ID，但是进程的有效用户ID则是passwd文件的所有者root的ID, 因此可以修改/etc/passwd文件。
+虽然你以test登陆系统，但是当你输入passwd命令来更改
+密码的时候，由于 passwd设置了SUID位，因此虽然进程
+的实际用户ID是test对应的ID，但是进程的有效用户ID则
+是passwd文件的所有者root的ID, 因此可以修改/etc/passwd
+文件。
