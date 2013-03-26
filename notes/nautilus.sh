@@ -31,11 +31,18 @@ $ sudo yum install unrar git git-gui gitk gnupg gnupg2 flex bison gperf	\
 	fakeroot fakeroot-libs gawk subversion unixODBC util-linux	\
 	SDL-devel esound-devel esound-libs wxGTK-devel ncurses-devel	\
 	readline-devel libzip-devel xorg-x11-proto-devel -y
+$ sudo yum install texinfo  -y
+
 $ sudo yum install minicom nfs-utils rpcbind tftp tftp-server samba -y
 $ sudo yum install gstreamer-plugins-ugly gstreamer-plugins-bad -y
 (note: mp3 decode)
 $ sudo yum install vim-X11 telnet minicom -y
 $ sudo yum install fuse fuse-ntfs-3g -y
+------------------------------------
+* --- 包依赖
+Package requirements (xxx >= 1.2beta3) were not met:
+编译安装 xxx 包
+$ export PKG_CONFIG_PATH=path2xxx/pkgconfig:$PKG_CONFIG_PATH
 ------------------------------------
 * --- Install wps beta1
 下载 wps-office_8.1.0.3724~b1p2_x86.tar.xz 并解压为 wps
@@ -705,12 +712,86 @@ Unix domain sockets
 信(X-Window syslog)
 
 PF_KEY sockets
-IPsec 协议族一员, 要使用 IPsec 须选该项, 一般可不选该项
+用于可信任的密钥管理程序和操作系统内核内部的密钥管
+理进行通信, IPsec 依赖于它.
 
-IP: kernel level autoconfiguration
-使用 nfs 启动必选, 支持从 cmdline 或其后所随的 3 个协议
-来确定自身 IP, Root file system on NFS 依赖于它. 参考
-Documentations/filesystems/nfs/nfsroot.txt
+TCP/IP networking (Y)
+  IP: multicasting
+  同一时间将信息传到多部计算机的技术, 异于广播和对等
+
+  IP: advanced router (N)
+  将 Linux 主机当路由器使用
+
+  IP: kernel level autoconfiguration
+  使用 nfs 启动必选, 支持从 cmdline 或其后所随的 3 个协议
+  来确定自身 IP, Root file system on NFS 依赖于它. 参考
+  Documentations/filesystems/nfs/nfsroot.txt
+
+  IP: tunneling (N)
+  信道传输支持, 让某种通信协议可以用另外的协议来包装,
+  离开后解出
+
+  IP: GRE tunnels over IP (N)
+  让 Tunneling 支持 GRE 或在 IPV4 中支持 IPV6
+
+  IP: multicast routing (N)
+  将 IP 包同时传到多个目的地网络, 仅 MBONE上使用(MBone 因
+  特网收音机和电视)
+
+  IP: ARP daemon support (N)
+  这东西尚处于试验阶段就已经被废弃了
+  在内部建立一个Cache, 用来保存物理地址到 IP 地址
+  的映射, 在小网络比较有效, 但会耗费内核缓存
+
+  IP: TCP syncookie support
+  抵抗 SYN flood 攻击, 须同时启用 /proc 和 "Sysctl support",
+  在系统启动并挂载了 /proc 后执行
+  "echo 1 >/proc/sys/net/ipv4/tcp_syncookies"
+
+  IP: AH transformation
+  IPsec 验证头(AH)实现了数据发送方的验证处理, 可确保
+  数据既对于未经验证的站点不可用也不能在路由过程
+  中更改
+
+  IP: ESP transformation
+  IPsec 封闭安全负载(ESP)实现了发送方的验证处理和数
+  据加密处理, 以确保数据不会被拦截/查看或复制
+
+  IP: IPComp transformation
+  IPComp(IP静荷载压缩协议), 用于支持 IPsec
+
+  IP: IPsec transport mode
+  IPsec 传输模式, 常用于对等通信, 用以提供内网安全.
+  数据包经过了加密但 IP 头没有加密, 因此任何标准
+  设备或软件都可查看和使用 IP 头
+
+  IP: IPsec tunnel mode
+  IPsec 隧道模式, 用于提供外网安全(包括虚拟专用网络).
+  整个数据包(数据头和负载)都已经过加密处理且分配有新
+  的 ESP/IP 头和验证尾, 从而能够隐藏受保护站点的拓扑
+  结构
+
+  IP: IPsec BEET mode
+  IPsec BEET 模式
+
+  Large Receive Offload (Y)
+  通过将多个 TCP 数据聚合在一个 skb 结构, 在稍后的某
+  个时刻作为一个大数据包交付给上层的网络协议栈, 以减
+  少上层协议栈处理 skb 的开销, 提高系统接收 TCP 数据
+  包的能力
+
+  INET: socket monitoring interface (N)
+  socket 监视接口, 一些工具(如包含 ss 的 iproute2)需用它
+
+  TCP: advanced congestion control
+  高级拥塞控制, 如没特殊需求(比如无线网络)别选, 内核会自
+  动将默认的拥塞控制设为 "Cubic" 并将 "Reno" 作为候补
+
+  The IPv6 protocol (N)
+  对 IPv6 的支持
+
+  [*] Only allow certain groups to create sockets
+  必需开, 安全选项对其有依赖, 这应该是一个 bug
 ------------------------------------
 * --- Device Drivers
 
@@ -852,7 +933,27 @@ Character devices
 
   RAW driver (/dev/raw/rawN)
   已废弃
-------------------------------------
+
+Cryptographic API
+提供核心的加密API支持. 这里的加密算法被广泛的应用
+于驱动程序通信协议等机制中. 子选项可以全不选, 内核
+中若有其他部分依赖它, 会自动选上
+
+Cryptographic algorithm manager
+创建加密模版实例, 必须要选
+
+HMAC support
+为 IPSec 所必须, 可为 PPPoE 提供压缩支持
+
+Null algorithms
+NULL加密算法(什么也不做), 用于 IPsec 协议的封装安全
+载荷模块(ESP)
+
+Library routines
+这些功能是为一些需要的模块而提供的, 通常这些模块
+不是编译在内核之中. 如果这些模块需要用到相应功能,
+那么你要在这选 M
+-----------------------------------
 
 # --------- Busybox
 
@@ -981,6 +1082,31 @@ acpid与应用程序的通信方式有两种:
 系统只提供内核界面而不提供标准的设备节点.
 /dev/pts devpts	PTY slave 文件系统
 /dev/shm tmpfs	提供对 POSIX 共享内存的直接访问
+
+/etc/mtab
+这将随着 /proc/mount 文件的改变而不断改变, 换句话说,
+文件系统被安装和卸载时, 改变会立即反映到此文件中
+/etc/protocols
+列举当前可用的协议, C 接口是 getprotoent. 绝不能更改.
+/etc/services
+将网络服务名转换为端口号/协议, 由 inetd/telnet/tcpdump
+和一些其他程序读取, 有一些 C 访问例程
+/etc/network/interface
+ifup ifdown 使用它来管理网络 
+如以 ifconfig eth0 来设置或者是修改了网络接口后, 就无法
+再以 ifdown eth0 的方式来关闭了. 因为 ifdown 会分析比较
+目前的网络参数与 ifcfg-eth0 是否相符, 不符的话, 就会放
+弃这次操作
+
+firmware 自动加载(wifi): 暂时使用下面方式
+echo '/sbin/mdev' > /proc/sys/kernel/hotplug
+mdev -s
+在系统启动和新硬件热插拔时, 有大量事件产生, 可能会造成
+系统阻塞. 以后移植 udev
+
+busybox 的 udhcpc 使用 /usr/share/udhcpc/default.script 做
+默认配置文件. 如果使用 cramfs, 需要修改 /etc/resovl.con 为
+tmp/resolv.con
 ------------------------------------
 
 
