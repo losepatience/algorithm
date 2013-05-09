@@ -10,7 +10,7 @@ $ e2label /dev/sdb1 boot
 $ mount /dev/sdb1  /mnt
 $ grub-install --root-directory=/mnt --no-floppy /dev/sdb
 (note:
---root-directory=/mnt 指明grub的安装目录，默认是 /boot
+--root-directory=/mnt 指明grub的安装目录, 默认是 /boot
 /dev/sdb: 安装 stage1 到 sdb 的 mbr)
 ------------------------------------
 * --- Install CentOS from HDD
@@ -22,7 +22,7 @@ $ kernel /isolinux/vmlinuz
 $ initrd /isolinux/initrd.img
 $ boot
 (note:
-如果我们不能确定 iso 在哪个分区，可以用下面的命令
+如果我们不能确定 iso 在哪个分区, 可以用下面的命令
 find --set-root --ignore-floppies --ignore-cd /CentOS-6.2-i386-bin-DVD.iso)
 ------------------------------------
 * --- Setup CentOS
@@ -77,7 +77,7 @@ $ mkfontscale
 $ mkfontdir
 $ fc-cache -fv
 (note:
-mkfontdir: 搜索所用字体文件，去其后缀作为字体名，并把字体
+mkfontdir: 搜索所用字体文件, 去其后缀作为字体名, 并把字体
 名、字体文件、参数写入到 font.dir 供 X 服务器使用
 fc-cache -fv: 刷新字体缓存
 fc-list: 查看已安装的字体
@@ -86,7 +86,7 @@ fc-list: 查看已安装的字体
 * --- create alias 4 IPs
 $ cat 192.168.110.73 gitserver >> /etc/hosts
 (note: windows 中, 对应的文件是 Windows/System32/drivers/etc/hosts)
-使用 ssh 时，也可以指定主机别名:
+使用 ssh 时, 也可以指定主机别名:
 host gitserver
 	user git
 	hostname 192.168.110.155
@@ -106,7 +106,7 @@ $ sudo echo 3 > /proc/sys/vm/drop_caches
 nevernote(the free-version of evernote)
 
 qstardict
-在用户目录的 .config 文件夹下，有个qstardict 目录，
+在用户目录的 .config 文件夹下, 有个qstardict 目录,
 它包含 qstardict 的配置信息
 
 IP_Messenger(http://ipmsg.org)
@@ -115,7 +115,7 @@ IP_Messenger(http://ipmsg.org)
 * --- 翻墙
 . 到 http://www.cjb.net/ 注册账户
   $ ssh -D 127.0.0.1:7070 furioustauren@216.194.70.6
-. 给 firefox 安装 AutoProxy 插件并重启之，在弹出的对话框中
+. 给 firefox 安装 AutoProxy 插件并重启之, 在弹出的对话框中
   选中 gfwlist 并把 "默认代理" 设置为 ssh-D(P)
 . 在 firefox 地址栏输入 about:config 把 network.proxy.socks_remote_dns
   设置为 true
@@ -241,7 +241,7 @@ nnoremap <C-i>d :cs f d <C-R>=expand("<cword>")<CR><CR>
 ^ 行首  $ 行尾 \< 词首 \> 词尾
 [c1-c2] c1-c2 中的任何字符
 [^c1-c2] c1-c2 外的任何字符
-\(\) 标记 \(\) 间的内容，之后可用 \1-\9 来引用它
+\(\) 标记 \(\) 间的内容, 之后可用 \1-\9 来引用它
 
 a\|b: 多选一
 
@@ -261,7 +261,7 @@ set -e
 $ set -o vi
 (note: 设置 bash 使用跟 vi 相同的快捷键)
 
-$ minicom -c on 
+$ minicom -c on
 (note: minicom 支持彩色)
 
 *history
@@ -332,30 +332,30 @@ OABI
 |--------*------|      ^----^-----^------^      |-----^--------|
 |comments of pro|                               | the 2rd file |
 ^---------------^                               ^--------------^
-	当你执行一次 commit，git 会把当前文件的内容做成快
-照，并保存一个指向此快照的引用。对于没有发生变化的文
-件，git 会保存一个其前版本的链接。
-	git 不以文件名的方式储存对象，而是把对象储存到数
-据库中，我们可以通过队形内容的 hash 值去寻址对象。
+	当你执行一次 commit, git 会把当前文件的内容做成快
+照, 并保存一个指向此快照的引用. 对于没有发生变化的文
+件, git 会保存一个其前版本的链接.
+	git 不以文件名的方式储存对象, 而是把对象储存到数
+据库中, 我们可以通过队形内容的 hash 值去寻址对象.
 
 .-----------.         .------------.         .----------.
 |working dir| ------> |staging area| ------> |repository|
 ^-----------^ git add ^------------^ commit  ^----------^
 
-	Git directory 储存元数据和对象数据库，它是执行依次
-git clone 所得到的所有东西。
-	工作目录是工程的一个检出版本，所有的文件都是从压缩
-数据库中抽取的，放于磁盘，供你修改和使用。
-	暂存区是一个文件，它保存下次将要提交的信息，通常它
-就是 index。
+	Git directory 储存元数据和对象数据库, 它是执行依次
+git clone 所得到的所有东西.
+	工作目录是工程的一个检出版本, 所有的文件都是从压缩
+数据库中抽取的, 放于磁盘, 供你修改和使用.
+	暂存区是一个文件, 它保存下次将要提交的信息, 通常它
+就是 index.
 
 *初始化版本库并添加跟踪文件:
-	使用 $ git init 来生成版本库的框架，使用 $ git add/rm 添
-删跟踪的文件。取消跟踪但不删除文件 $ git rm a --cached。
-要删除暂存区的某文件 $ git rm a -f。
+	使用 $ git init 来生成版本库的框架, 使用 $ git add/rm 添
+删跟踪的文件. 取消跟踪但不删除文件 $ git rm a --cached.
+要删除暂存区的某文件 $ git rm a -f.
 
 *.gitignore 原则：要忽略 $ ./configure, $ make 产生的文件,
-编译器产生的临时文件，diff 文件等。
+编译器产生的临时文件, diff 文件等.
 .gitignore
 	*.[ao]	# no .a files
 	!lib.a	# but do track lib.a
@@ -363,9 +363,9 @@ git clone 所得到的所有东西。
 	build/	# ignore all files in the build/ directory
 
 *文件的快照放到暂存区: $ git add
-	$ git commit 生成一个 commit 对象，其 tree 元指向
+	$ git commit 生成一个 commit 对象, 其 tree 元指向
 $ git add 时产生的快照. 所以提交前通常先运行 $ git add
-来生成文件快照，commit 时使用 -a 选项可以跳过这步
+来生成文件快照, commit 时使用 -a 选项可以跳过这步
 *重命名工作区或者暂存区的文件: $ git mv a b
 
 *查看文件状态: $ git status
@@ -382,11 +382,11 @@ $ git diff branch1 branch2
 $ git format-patch master --stdout > ~/tmp.patch
 (note: 把当期分支与 maste 分支的差别放入 tmp.patch 文件)
 $ git apply ~/tmp.patch 打补丁
-$ git am ~/tmp.patch 相对 apply，am 支持从电子又见格式 patch
-(note: $ git am 之前，最好先运行下 $ git --abort 去除垃圾信息)
+$ git am ~/tmp.patch 相对 apply, am 支持从电子又见格式 patch
+(note: $ git am 之前, 最好先运行下 $ git --abort 去除垃圾信息)
 
-*一段工作后，如果你不想把新修改的内容提交到的版本，
-而是提供到上一个中，使用 --amend 选项:
+*一段工作后, 如果你不想把新修改的内容提交到的版本,
+而是提供到上一个中, 使用 --amend 选项:
 $ git commit --amend -m "version again"
 
 $ git checkout hello.c 取消文件修改
@@ -414,9 +414,9 @@ $ git chechout master
 $ git merge test
 $ git branch -m [old] [new]
 
-*正在某分支工作突然需要切换另一个分支工作，可还不想提
-交当前分支，这时用到 $ git stash。完成另一个分支的工作
-后再切换到该分支，用 $ git stash apply [@{n}] 恢复放入
+*正在某分支工作突然需要切换另一个分支工作, 可还不想提
+交当前分支, 这时用到 $ git stash. 完成另一个分支的工作
+后再切换到该分支, 用 $ git stash apply [@{n}] 恢复放入
 栈内的内容.
 $ git stash list 查看栈内 stash 信息
 $ git stash clear 清空栈
@@ -434,14 +434,14 @@ $ git check -b br1 origin/svrbr
 (note: 检出服务器的 svrbr 分支到本地 br 分支)
 $ git push origin br:svrbr
 (note: 推送本地 br 分支到服务器的 svrbr 分支
-不过，在此之前要先 $ git fetch origin, 把服务器
-上分支改动的信息取到本地。)
+不过, 在此之前要先 $ git fetch origin, 把服务器
+上分支改动的信息取到本地. )
 
 $ git push [remote] :[branch]
 (note: 删除服务器上的某分支)
 
 *删除远程仓库的 commit:
-	在本地仓库执行 $ git reset --hard sh-1，然后
+	在本地仓库执行 $ git reset --hard sh-1, 然后
 $ git push -f
 
 *在本地库中删除所有远程库 origin 中已不存在的分支:
@@ -497,6 +497,74 @@ so Wally in our example will pass the pre-git check.)
            operation, access is allowed and the matching stops.
     If no rule ends with a decision, ("fallthru"), access is rejected.
 )
+------------------------------------
+* --- Setup gitolite gitweb
+
+* $setup gitolite:
+On client:
+$ ssh-keygen -t rsa -f linus 
+$ git clone git://github.com/sitaramc/gitolite
+
+On server: ssh name@serverip
+$ sudo apt-get install git-core
+$ git config --global user.name "JL"
+$ git config --global user.email furious_tauren@163.com
+$ sudo adduser --system --shell /bin/bash --gecos 'git version control' \
+   --group --disabled-password --home /home/git git
+$ su git
+# copy gitolite and linus.pub here from client
+$ mkdir bin
+$ gitolite/install -to /home/git/bin
+$ /home/git/bin/gitolite setup -pk linus.pub
+
+* $setup gitweb:
+$ sudo apt-get install apache2 gitweb highlight
+
+# Append www-data to git group so gitweb can access the repos
+$ sudo usermod -a -G git www-data
+
+# given permissions to enable gitweb and git-daemon export
+$ vim .gitolite.rc {UMASK =>  0027,}
+
+# if there are alread repositories, following 2 lines is needed.
+$ chmod g+r /home/git/projects.list
+$ chmod -R g+rx /home/git/repositories
+$ sudo vim /etc/gitweb.conf 
+{
+# change $projectroot to /home/git/repositories
+# change $projects_list to /home/git/projects.list
+
+# To enable other optional features of gitweb, add the following:
+$projects_list_description_width = 100;
+
+$feature{'blame'}{'default'} = [1];
+$feature{'blame'}{'override'} = 1;
+
+$feature{'pickaxe'}{'default'} = [1];
+$feature{'pickaxe'}{'override'} = 1;
+
+$feature{'snapshot'}{'default'} = [1];
+$feature{'snapshot'}{'override'} = 1;
+
+$feature{'search'}{'default'} = [1];
+
+$feature{'grep'}{'default'} = [1];
+$feature{'grep'}{'override'} = 1;
+
+$feature{'show-sizes'}{'default'} = [1];
+$feature{'show-sizes'}{'override'} = 1;
+
+$feature{'avatar'}{'default'} = ['gravatar'];
+$feature{'avatar'}{'override'} = 1;
+
+$feature{'highlight'}{'default'} = [1];
+$feature{'highlight'}{'override'} = 1;
+}
+
+$ git clone https://github.com/kogakure/gitweb-theme.git
+$ cp gitweb-theme/{gitweb.css,gitweb.js} /usr/share/gitweb/static
+
+$ sudo service apache2 restart
 
 
 # --------- Shell
@@ -598,14 +666,14 @@ Disable heap randomization
 随机堆会让堆的开发更加困难, 它同样会破坏传统的二进制
 文件(libc5), 这个选项使系统启动时变为禁止随机堆, 运行
 时可设 /proc/sys/kernel/randomize_va_space 为 2 来
-修改, 较新的发行版, 该项是安全的。
+修改, 较新的发行版, 该项是安全的.
 
 Choose SLAB allocator (slub)
 slab 默认的, 它已经被证实在所有的环境中都工作得很好.
-slub 最小化了缓冲, 高效使用内存，还有加强的诊断(试新)
+slub 最小化了缓冲, 高效使用内存, 还有加强的诊断(试新)
 
 Profiling support (N)
-提供一种检测代码运行效率的工具, 为 OProfile 所用。
+提供一种检测代码运行效率的工具, 为 OProfile 所用.
 
 * --- Enable loadable module support
 Module versioning support
@@ -621,7 +689,7 @@ Block layer SG support v4 (N)
 
 Block layer data integrity support (N)
 一些储存设备允许额外信息的储存和找回, 以便保护数据
-此选项提供了相应的挂钩, 这可以用于文件系统中，以确
+此选项提供了相应的挂钩, 这可以用于文件系统中, 以确
 保更好的数据完整性. 如果你的设备提供了 T10/SCSI 数
 据完整性域 或 T13/ATA 扩展路径保护功能, 选中.
 
@@ -809,7 +877,7 @@ Generic Driver Options
   在用户空间被任意修改, 这使得 init=/sbin/sh 不需额外
   支持就能工作正常. 系统启动后 udev daemon 会启动并聆
   听来自 Linux 核心的 uevent.
-  但作为挂载点的 /dev/pts 和 /dev/shm, 需手动创建 
+  但作为挂载点的 /dev/pts 和 /dev/shm, 需手动创建
   (telnet 必需)
   [/etc/inittab]
   ::sysinit:/bin/mkdir /dev/shm
@@ -1014,7 +1082,7 @@ Busybox Settings  --->
 
 Login/Password Management Utilities  --->
   [*] Use internal password and group functions rather than system functions
-  [*]   Use internal shadow password functions 
+  [*]   Use internal shadow password functions
   busybox 接管 password/group, 将不能使用 PAM, 系统的
   password/group 需要 /lib/libnss_* 库支持.
 
@@ -1023,9 +1091,9 @@ Login/Password Management Utilities  --->
   [ ]   Support for PAM (Pluggable Authentication Modules)
   可使用 pam.d 下的配置文件来控制登录
 
-Linux System Utilities  ---> 
+Linux System Utilities  --->
   [*] ipcrm
-  [*] ipcs 
+  [*] ipcs
   两者通过 systemV 与内核通信, 读写进程信息
   [*] pivot_root
   切换根目录的挂载点
@@ -1038,11 +1106,11 @@ Miscellaneous Utilities  --->
 [*]   Report command output via email (using sendmail)
 (/var/spool/cron) crond spool directory
 
-[*] crontab 
-[ ] inotifyd 
+[*] crontab
+[ ] inotifyd
 
-Linux System Utilities  ---> 
-[*] acpid 
+Linux System Utilities  --->
+[*] acpid
 acpid 用 poll 函数挂在/proc/acpi/event 文件上. 一旦总
 线事件列表(acpi_bus_event_list)上有电源管理事件发生,
 内核就会唤醒挂在 /proc/acpi/event 上的 acpid, acpid
@@ -1056,15 +1124,15 @@ acpid与应用程序的通信方式有两种:
 命令. 配置文件在/etc/acpi/events/目录下
 ------------------------------------
 
-[*] syslogd 
-[*] klogd 
-[*] dnsd 
-[*] ftpd 
-[*] httpd 
+[*] syslogd
+[*] klogd
+[*] dnsd
+[*] ftpd
+[*] httpd
 [*] inetd
 [*] ntpd
 [*] telnetd
-[*] tftpd 
+[*] tftpd
 [*] udhcp server (udhcpd)
 ------------------------------------
 
@@ -1076,7 +1144,7 @@ acpid与应用程序的通信方式有两种:
 /dev/stdin	fd/0		symbolic	必需
 /dev/stdout	fd/1		symbolic	必需
 /dev/stderr	fd/2		symbolic	必需
-/dev/core	/proc/kcore	symbolic	推荐	
+/dev/core	/proc/kcore	symbolic	推荐
 
 以下名称被保留用于挂载特殊的文件系统, 这些特殊的文件
 系统只提供内核界面而不提供标准的设备节点.
@@ -1084,15 +1152,21 @@ acpid与应用程序的通信方式有两种:
 /dev/shm tmpfs	提供对 POSIX 共享内存的直接访问
 
 /etc/mtab
-这将随着 /proc/mount 文件的改变而不断改变, 换句话说,
-文件系统被安装和卸载时, 改变会立即反映到此文件中
+linux 使用两种机制来跟踪已经 mount 的文件系统, 一是内核
+输出文件系统信息到 /proc/mounts, 二是 mount 自己维护
+
+/etc/mtab. 高版本的内核和 busybox 默认都使用前者, 所以
+mtab 已经没必要了.
+
 /etc/protocols
 列举当前可用的协议, C 接口是 getprotoent. 绝不能更改.
+
 /etc/services
 将网络服务名转换为端口号/协议, 由 inetd/telnet/tcpdump
 和一些其他程序读取, 有一些 C 访问例程
+
 /etc/network/interface
-ifup ifdown 使用它来管理网络 
+ifup ifdown 使用它来管理网络
 如以 ifconfig eth0 来设置或者是修改了网络接口后, 就无法
 再以 ifdown eth0 的方式来关闭了. 因为 ifdown 会分析比较
 目前的网络参数与 ifcfg-eth0 是否相符, 不符的话, 就会放
@@ -1105,8 +1179,35 @@ mdev -s
 系统阻塞. 以后移植 udev
 
 busybox 的 udhcpc 使用 /usr/share/udhcpc/default.script 做
-默认配置文件. 如果使用 cramfs, 需要修改 /etc/resovl.con 为
-tmp/resolv.con
+默认配置文件. 如果使用 cramfs, 需要修改 /etc/resovl.conf 为
+tmp/resolv.conf
+
+/var 包括系统运行时要改变的数据. 每个系统是特定的,
+即不通过网络与其他计算机共享. 一些程序需要你创建特
+定子目录(如 abrtd 需要 /var/lock/sybsys 目录).
+  /var/lib
+  系统正常运行时要改变的文件.
+
+  /var/lock
+  许多程序遵循在 /var/lock 中产生一个锁定文件的约定,
+  以支持他们正在使用某个特定的设备或文件. 其他程序注
+  意到这个锁定文件, 将不试图使用这个设备或文件.
+
+  /var/log
+  各种程序的 log 文件, 如 login 和 syslog(/var/log/messages)
+
+  /var/run
+  到下次引导前有效的关于系统的信息文件. 如 /var/run/utmp
+  包含当前登录的用户的信息.
+
+  /var/spool
+  mail, news, 打印队列和其他队列工作的目录. 每个不同的 spool
+  在 /var/spool 有独立目录, 如 /var/spool/mail.
+
+  /var/tmp
+  比 /tmp 允许的大或需要存在较长时间的临时文件.
+
+  (pcmcia Hi3518 没这接口)
 ------------------------------------
 
 
@@ -1114,29 +1215,30 @@ tmp/resolv.con
 1. (cp / ln / mv) src des(Destination)
 
 2. 【硬连接】
-在Linux中，多个文件名指向同一索引节点是存在的。
-只有当最后一个连接被删除后，文件的数据块及目录
-的连接才会被释放。
+在 Linux 中, 多个文件名指向同一索引节点是存在的.
+只有当最后一个连接被删除后, 文件的数据块及目录
+的连接才会被释放.
 
 【软连接】
-它实际上是一个特殊的文件。在符号连接中，文件实际
-上是一个文本文件，其中包含的有另一文件的位置信息。
+它实际上是一个特殊的文件. 在符号连接中, 文件实际
+上是一个文本文件, 其中包含的有另一文件的位置信息.
 
 3. suid sgid
-进程在运行的时候，有一些属性，其中包括实际用户ID,
-实际组ID, 有效用户ID, 有效组ID等。 实际用户ID和实际
-组ID标识我们是谁，谁在运行这个程序, 一般这2个字段
-在登陆时决定，在一个登陆会话期间， 这些值基本上不改变。
+进程在运行的时候, 有一些属性, 其中包括实际用户 ID,
+实际组 ID, 有效用户 ID, 有效组 ID 等.  实际用户 ID
+和实际组 ID 标识我们是谁, 谁在运行这个程序, 一般这
+2 个字段在登陆时决定, 在一个登陆会话期间,  这些值
+基本上不改变.
 
-而有效用户ID和有效组ID则决定了进程在运行时的权限。
-SUID的优先级比SGID高，当一个可执行程序设置了SUID，
-则SGID会自动变成相应的egid
+而有效用户 ID 和有效组 ID 则决定了进程在运行时的权限.
+SUID 的优先级比 SGID 高, 当一个可执行程序设置了 SUID,
+则 SGID 会自动变成相应的 egid
 
 [root@beauty ~]# ls -l /usr/bin/passwd
 -rwsr-xr-x 1 root root 25980 2月  22 2012 /usr/bin/passwd
 
-虽然你以test登陆系统，但是当你输入passwd命令来更改
-密码的时候，由于 passwd设置了SUID位，因此虽然进程
-的实际用户ID是test对应的ID，但是进程的有效用户ID则
-是passwd文件的所有者root的ID, 因此可以修改/etc/passwd
-文件。
+虽然你以 test 登陆系统, 但是当你输入 passwd 命令来更改
+密码的时候, 由于 passwd 设置了 SUID 位, 因此虽然进程
+的实际用户 ID 是 test 对应的 ID, 但是进程的有效用户 ID
+则是 passwd 文件的所有者 root 的 ID, 因此可以修改
+/etc/passwd 文件.

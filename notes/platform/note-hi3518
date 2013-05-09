@@ -29,7 +29,7 @@ setenv bootargs 'mem=64M console=ttyAMA0,115200 root=/dev/nfs nfsroot=192.168.9.
 setenv bootcmd 'tftp 0x82000000 uImage6;bootm 0x82000000'
 
 3518
-setenv bootargs 'mem=64M console=ttyAMA0,115200 root=/dev/nfs nfsroot=192.168.9.1:/home/nfs/rootfs,proto=tcp,nolock ip=192.168.9.2:192.168.9.1:192.168.9.1:255.255.255.0:hbipc:eth0:off'
+setenv bootargs 'mem=64M console=ttyAMA0,115200 root=/dev/nfs nfsroot=192.168.9.177:/home/nfs/fakeroot,proto=tcp,nolock ip=192.168.9.2:192.168.9.177:192.168.9.177:255.255.255.0:hbipc:eth0:off'
 setenv bootcmd 'tftp 0x82000000 uImage;bootm 0x82000000'
 
 setenv bootcmd 'nand read 0x82000000 0x100000 0x300000;bootm 0x82000000'
@@ -110,3 +110,65 @@ framebuffer 为 hifb.ko 所用.
 Device Drivers
   Graphics support --->
     <*> Support for frame buffer devices
+
+Figure 4: interlaced scan vs progressive scan illustration.
+图4:隔行扫描与逐行扫描方式的对比。
+
+1. CMOS 全局快门
+在曝光前整个图像重置; 像素可以在曝光时间积累电荷; 
+曝光结束后, 每个像素积累的电荷同时传送到屏蔽光(
+对光不敏感)的存储区域; 然后信号从此区域读出.
+因所有像素同时重置, 曝光积分同样的间隔, 并同时
+传输到光屏蔽存储区域, 故移动物体来说没有变形.
+
+2. CMOS Rolling shutter
+.-------------------------.
+|*|*|*|*|*|*|*|*|*|*|*|*|*| --> 上帘布
+.-------------------------.
+| | | | | | | | | | | | | | ]-->  当前 Read 行
+.-------------------------. |
+| | | | | | | | | | | | | | |--> 进入光积分过程
+.-------------------------. |
+| | | | | | | | | | | | | | ]
+.-------------------------.
+|*|*|*|*|*|*|*|*|*|*|*|*|*| --> 下帘布: 此行处于复位状态
+^-------------------------^
+帘布以一定的速度移动, 帘布间隙决定曝光时间, 处于积分
+状态的像素行数(曝光时间)可通过 sensor 的控制总线(I2C)调节
+因为逐行扫描的时间差, 高速运动的物体会产生明显的变形
+
+3. CFA
+    Color filter array (CFA) is a mosaic of tiny color filters placed
+over the pixel sensors of an image sensor to capture color information.
+    Color filters are needed because the typical photosensors detect
+light intensity(光强) with little or no wavelength specificity, and
+therefore cannot separate color information.
+    The color filters filter the light by wavelength range, such that
+the separate filtered intensities include information about the color
+of light. For example, the Bayer filter gives information about the
+intensity of light in red, green, and blue (RGB) wavelength regions.
+The raw image data captured by the image sensor is then converted to a
+full-color image by a demosaicing algorithm which is tailored for each
+type of color filter. 
+
+4. YUV
+亮度: 亮度表示某种颜色在人眼视觉上引起的明暗程度,
+它直接与光的强度有关. 光的强度越大, 景物就越亮;
+光的强度越小, 景物就会越暗. 
+
+色调: 色调表示光的颜色, 它决定于光的波长. 可见光的各
+色波长范围之间的界限并不十分明显, 色调是由强度最大的
+彩色成分来决定的. 例如自然界中的七色光就分别对应着不
+同的色调, 而每种色调又分别对应着不同的波长. 
+
+饱和度: 饱和度表示彩色深浅度或鲜艳度, 取决于彩色中的
+白色含量, 白光含量越高, 色彩饱和度即越低, 反之亦然.
+ 其数值为百分比, 介于 0-100% 之间. 纯白光的色彩饱和度为
+0, 而纯彩色光的饱和度则为 100%.
+
+Y = 0.299R + 0.587G + 0.114B
+U = -0.147R - 0.289G + 0.436B
+V = 0.615R - 0.515G - 0.100B
+R = Y + 1.14V
+G = Y - 0.39U - 0.58V
+B = Y + 2.03U
