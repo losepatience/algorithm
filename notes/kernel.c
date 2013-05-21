@@ -101,3 +101,60 @@ static inline long IS_ERR(const void *ptr)
 }
 
 if (a) return ERR_PTR(-EBUSY);
+
+/*
+ * XXX: ------ Basic
+ * 在编写驱动时, 程序员应当特别注意这个基础的概念:
+ * 编写内核代码来存取硬件, 但是不能强加特别的策略给
+ * 用户, 因为不同的用户有不同的需求. 驱动应当做到使
+ * 硬件可用, 将所有关于如何使用硬件的事情留给应用程序.
+ * 一个驱动, 这样, 就是灵活的, 如果它提供了对硬件能
+ * 力的存取, 没有增加约束. 然而, 有时必须作出一些策
+ * 略的决定. 例如, 一个数字 I/O 驱动也许只提供对硬件
+ * 的字符存取, 以便避免额外的代码处理单个位.
+ *
+ *   对策略透明的驱动有一些典型的特征. 包括支持同步
+ * 和异步操作, 可以多次打开的能力, 利用硬件全部能力,
+ * 没有软件层来"简化事情"或者提供策略相关的操作. 这
+ * 样的驱动不但对他们的最终用户好用, 而且证明也是易
+ * 写易维护的.
+ *
+ *   __devinit 和 __devinitdata 只在内核没有配置支持
+ * hotplug 设备时转换成 __init 和 _initdata
+ *
+ *   在注册内核设施时, 注册可能失败. 即便最简单的动作
+ * 常常需要内存分配, 分配的内存可能不可用. 因此模块代
+ * 码必须一直检查返回值, 并确认要求的操作实际上已成功.
+ *
+ *   内核完全可能会在注册完成之后马上使用任何你注册的
+ * 设施. 换句话说, 在你的初始化函数仍然在运行时, 内核
+ * 将调用进你的模块. 不要注册任何设施, 直到所有的需要
+ * 支持那个设施的你的内部初始化已经完成.
+ *
+ *   内核调试, printk 和 ioctl/proc 仍是 linus 推荐的
+ * 方式. printk 在串口上带来的延迟可用 ioctl 方案代替.
+ * strace/kgdb 不是 linus 推荐的.
+ *
+ */
+
+/*
+ * XXX: ------ bit_ops
+ * use local variable to guarantee "if" and "test_and_set_bit"
+ * to be atomic.
+ */
+static inline int
+____atomic_test_and_set_bit(unsigned int bit, volatile unsigned long *p)
+{
+	unsigned long flags;
+	unsigned int res;
+	unsigned long mask = 1UL << (bit & 31);
+
+	p += bit >> 5;
+
+	raw_local_irq_save(flags);
+	res = *p;
+	*p = res | mask;
+	raw_local_irq_restore(flags);
+
+	return (res & mask) != 0;
+}

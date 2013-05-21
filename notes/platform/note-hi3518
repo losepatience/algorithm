@@ -100,6 +100,8 @@ cp busybox_cfg_hfp_nptl .config
 make -j 20
 make install
 
+注意: fdt 的脚本 appfs 对应的 entry 应该是 0x01800000
+
 
 7. ------ note
 /sys/slab 为 mmz.ko 所用, 否则会 oops 滴
@@ -172,3 +174,5 @@ V = 0.615R - 0.515G - 0.100B
 R = Y + 1.14V
 G = Y - 0.39U - 0.58V
 B = Y + 2.03U
+
+
