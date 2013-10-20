@@ -40,8 +40,8 @@ endfunction
 """"""""""""""""""""""""""""""
 if has("gui_running")
     if has("unix")
-        set guifont=Monospace\ 13
-        set guifontwide=KaiTi\ 14
+        set guifont=Monospace\ 16
+        set guifontwide=KaiTi\ 16
     elseif has("win32")
         set guifont=Courier:h12:cANSI
         set guifontwide=NSimSun:h12 
@@ -101,7 +101,7 @@ let g:SuperTabDefaultCompletionType="<C-X><C-O>"
 """"""""""""""""""""""""""""""
 " cscope
 """"""""""""""""""""""""""""""
-set cscopequickfix=s-,c-,d-,i-,t-,e-
+" set cscopequickfix=s-,c-,d-,i-,t-,e-
 if has("cscope")
 	set csprg=/usr/bin/cscope
 	set csto=1	" first tags, then cscope.out
