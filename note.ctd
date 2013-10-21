@@ -2744,7 +2744,10 @@ ldr r0, =0xffabcdef	;此处 ldr 是宏, 用于超出范围的常数/标签
 *
 ldr r0, [r1, #4]	;r0 ← [r1 + 4]  
 ldr r0, [r1, #4]!	;r0 ← [r1 + 4]	, r1 ← r1 + 4
-ldr r0, [r1], #4	;r0 ← [r1]	, r1 ← r1 + 4  
+ldr r0, [r1], #4	;r0 ← [r1]	, r1 ← r1 + 4
+*
+ldr r0, label @ after compile: ldr r0, [pc, #n] @ in literal pool
+adr r0, label @ after compile: add r0, #offset
 
 * ------ 多寄存器寻址
 ldmia r0, {r2, r1} ;与寄存器顺序无关: r1 ← [r0], r2 ← [r0 + 4]
