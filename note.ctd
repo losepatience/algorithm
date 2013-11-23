@@ -3011,6 +3011,9 @@ static inline void atomic_add(inti, atomic_t *v)
    已被清除, 此时 strex 就不会更新内存, 并且返回 1
 5. 跳转到 1(bne	1b), 重新执行
 
+* ------ __attribute__((weak))
+weak 弱类型的函数可以被其它同名函数覆盖(即不会发生冲突), 如果没有其它
+同名函数, 就使用该 weak 函数, 类似于是默认函数.
 </rich_text></node><node name="make" prog_lang="makefile" readonly="False" tags="" unique_id="2"><rich_text>1、读入所有的Makefile。
 2、读入被include的其它Makefile。
 3、初始化文件中的变量(展开：除规则命令行中的变量和函数以外)
