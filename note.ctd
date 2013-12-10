@@ -2986,10 +2986,10 @@ ldrex 和 strex 是 AMRV6 引入的新的同步机制, 取代了过去的 SWP
 这次 store 的过程, 并且返回 0, 然后清除该标记. 如果没有这个标记,
 不会完成store, 返回 1
 
-static inline void atomic_add(inti, atomic_t *v)
+static inline void atomic_add(int i, atomic_t *v)
 {
-	unsignedlong tmp;
-	intresult;
+	unsigned long tmp;
+	int result;
 
 	__asm____volatile__(&quot;@ atomic_add\n&quot;
 	&quot;1:	ldrex	%0, [%3]\n&quot;
@@ -3070,6 +3070,24 @@ setup pagetable --&gt; disable and invalidate ICache -&gt; enable mmu
    command enbling mmu with va = pa. 
           0x100 --&gt; enable mmu cmd 
    pc --&gt; 0x104 --&gt; next cmd 
+   
+ENTRY(__turn_mmu_on)
+	mov	r0, r0
+	instr_sync
+	mcr	p15, 0, r0, c1, c0, 0		@ write control reg
+	mrc	p15, 0, r3, c0, c0, 0		@ read id reg
+	instr_sync
+	mov	r3, r3
+	mov	r3, r13
+	mov	pc, r3
+__turn_mmu_on_end:
+
+   &quot;mrc	p15, 0, r3, c0, c0, 0&quot; could be replace by &quot;mov	r0, r0&quot;,
+   It's actually the recommended sequence for most ARM CPUs,
+   except Xscale in this respect.
+     By ARM compliant implementation, this instrument guarantees
+   that the write to the CP register has taken effect.
+
 
 2. disable mmu:
 disable DCache --&gt; invalidate TLB --&gt; disable mmu
@@ -3081,6 +3099,12 @@ disable DCache --&gt; invalidate TLB --&gt; disable mmu
    11: access without checking AP bits
    
 * ------ things about cache
+清除(invalidate)操作清零相应 cache 行的有效位, 从而强制将内存
+数据加载到cache之中 
+对于采用写回策略的 Dcache, 就需要使用清理(clean)操作. 把脏的
+cache 行强制写到主存, 并把 cache 行中的脏位清零. 清理 cache
+可以重建 cache 与主存的一致性, 它只用在使用写回策略的 Dcache上.
+
 Cache 写回内存有两种模式：
 1. Write Back: 
   Cache Line 中的数据被 CPU 核修改时并不立刻写回内存,
