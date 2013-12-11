@@ -3101,6 +3101,8 @@ disable DCache --&gt; invalidate TLB --&gt; disable mmu
 * ------ things about cache
 清除(invalidate)操作清零相应 cache 行的有效位, 从而强制将内存
 数据加载到cache之中 
+To clean, clean the L1 cache first then L2
+To invalidate, invalidate the L2 cache first then L1.
 对于采用写回策略的 Dcache, 就需要使用清理(clean)操作. 把脏的
 cache 行强制写到主存, 并把 cache 行中的脏位清零. 清理 cache
 可以重建 cache 与主存的一致性, 它只用在使用写回策略的 Dcache上.
