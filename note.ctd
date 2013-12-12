@@ -3064,8 +3064,14 @@ va ------&gt; tlb ---cached---&gt; access
 |  ARM   | -----&gt; |   WB   |&lt;---&gt; |line fetch|    |        |
 ^--------^   VA   ^--------^      ^----------^    ^--------^
 
+ 31                    20                 11    9  8      5  4  3  2  1 0
+.------------------------.------------------.----.--.------.--.--.--.----.
+|  section base address  |     SZ           | AP |SZ|domain| 1| C| B| 1 0|
+^------------------------^------------------^----^--^------^--^--^--^----^
+
+
 1. enable mmu:
-setup pagetable --&gt; disable and invalidate ICache -&gt; enable mmu
+setup pagetable --&gt; invalidate ICache and tlb --&gt; enable mmu
    if va != pa, we need remap the code near(after) the
    command enbling mmu with va = pa. 
           0x100 --&gt; enable mmu cmd 
@@ -3101,11 +3107,18 @@ disable DCache --&gt; invalidate TLB --&gt; disable mmu
 * ------ things about cache
 清除(invalidate)操作清零相应 cache 行的有效位, 从而强制将内存
 数据加载到cache之中 
-To clean, clean the L1 cache first then L2
-To invalidate, invalidate the L2 cache first then L1.
 对于采用写回策略的 Dcache, 就需要使用清理(clean)操作. 把脏的
 cache 行强制写到主存, 并把 cache 行中的脏位清零. 清理 cache
 可以重建 cache 与主存的一致性, 它只用在使用写回策略的 Dcache上.
+To clean, clean the L1 cache first then L2
+To invalidate, invalidate the L2 cache first then L1.
+
+  When you clear the C bit in the CP15 SC Register for
+a given processor, data caching is disabled and no new cache
+lines are allocated to the L1 data cache and L2 cache because
+of requests from that processor.
+  When you disable the cache, all Write-Back Cacheable requests
+still look up the L1 cache.
 
 Cache 写回内存有两种模式：
 1. Write Back: 
