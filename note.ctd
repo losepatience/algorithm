@@ -3120,6 +3120,29 @@ of requests from that processor.
   When you disable the cache, all Write-Back Cacheable requests
 still look up the L1 cache.
 
+&quot;Now I think that it is a bootloader requirement.
+&quot;
+&quot;And in the arm linux kernel's booting requirement,
+&quot;Data cache must be off and must not contain any stale data.
+&quot;
+&quot;&gt; You must invalidate the instruction cache, the data cache, and BTAC
+&quot;&gt; before using them.
+&quot;&gt; You are not required to invalidate the main TLB, even though it is
+&quot;&gt; recommended for
+&quot;&gt; safety reasons. This ensures compatibility with future revisions of
+&quot;&gt; the processor.
+&quot;&gt;
+&quot;&gt; But the kernel does.. ( __v7_setup in proc-v7.S )
+&quot;&gt; clean &amp; invalidate before turning on the MMU, not just 'invalidate'.
+&quot;&gt;
+&quot;&gt; If dcache tag&amp;data ram has garbage data when power up,
+&quot;&gt; I think some dirty data lines can be flushed into to L2 or L3 memory
+&quot;&gt; because kernel does clean.
+&quot;&gt; And It can pollute the memory.
+&quot;&gt;
+&quot;&gt; Is it possible in cortex-A9?
+
+
 Cache 写回内存有两种模式：
 1. Write Back: 
   Cache Line 中的数据被 CPU 核修改时并不立刻写回内存,
