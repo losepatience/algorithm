@@ -3179,9 +3179,12 @@ Cache 写回内存有两种模式：
 
    SAC 即内存中一条给定的&quot;缓存线&quot;只能被保存在一个特定的 set 中.
    页的第 n 条缓存线(offset: 32*n -- 32*(n+1))须存储到 set n.
-   
-   
-</rich_text></node><node name="make" prog_lang="makefile" readonly="False" tags="" unique_id="2"><rich_text>1、读入所有的Makefile。
+
+
+* ------ stack
+  局部变量可能直接使用寄存器储存, 局部数组使用 stack.
+  uCOS 中每个任务都有自己的堆栈, 异常也有自己的 stack. 如果支持中断嵌套,
+  堆栈可能需要比较大. 注意堆栈溢出, 会导致各种奇怪的现象.</rich_text></node><node name="make" prog_lang="makefile" readonly="False" tags="" unique_id="2"><rich_text>1、读入所有的Makefile。
 2、读入被include的其它Makefile。
 3、初始化文件中的变量(展开：除规则命令行中的变量和函数以外)
 4、推导隐晦规则，并分析所有规则。
