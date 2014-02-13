@@ -1712,6 +1712,9 @@ $ cp /root/{a,b} /root/dir/
 $ cp fs2410_kernel_2614.[I,W]?? /tmp
 (note: cp support RE)
 
+find . -name &quot;*.c&quot; -print0 | xargs -0 sed -i 's/x_cnt/x_counter/g'
+(replace x_cnt with x_xounter in all c files)
+
 $ rm /etc/fonts/conf.d/49-sansserif.conf
 (*note: Solve chinese confusion code in evince)
 
