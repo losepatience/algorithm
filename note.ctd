@@ -1916,7 +1916,7 @@ so Wally in our example will pass the pre-git check.)
 ------------------------------------
 * --- Git svn
 1. error: SSL handshake failed: SSL error: Key usage violation in certif
-$ yumdownloader -source neon
+$ yumdownloader --source neon
 (note: this will give neon-0.29.3-3.el6_4.i686.rpm)
 
 $ rpm -i neon-0.29.3-3.el6_4.i686.rpm
@@ -1928,8 +1928,8 @@ $ rpmbuild -ba SPECS/neon.spec
 (note: rebuild pacakges)
 
 $ cd RPMS/i686/
-$ rpm -e –nodeps neon
-$ rpm -e –nodeps neon-devel
+$ rpm -e --nodeps neon
+$ rpm -e --nodeps neon-devel
 $ rpm -ivh neon-0.29.5-2.fc15.i686.rpm neon-devel-0.29.5-2.fc15.i686.rpm
 
 2. commit:
