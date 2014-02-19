@@ -1912,6 +1912,30 @@ so Wally in our example will pass the pre-git check.)
            operation, access is allowed and the matching stops.
     If no rule ends with a decision, (&quot;fallthru&quot;), access is rejected.
 )
+
+------------------------------------
+* --- Git svn
+1. error: SSL handshake failed: SSL error: Key usage violation in certif
+$ yumdownloader -source neon
+(note: this will give neon-0.29.3-3.el6_4.i686.rpm)
+
+$ rpm -i neon-0.29.3-3.el6_4.i686.rpm
+(note: this will create rpmbuild directory in home folder)
+$ cd ~/rpmbuild
+$ vim SPECS/neon.spec
+(note: change &quot;--with-ssl=gnu-tls&quot; to &quot;--with-ssl&quot;)
+$ rpmbuild -ba SPECS/neon.spec
+(note: rebuild pacakges)
+
+$ cd RPMS/i686/
+$ rpm -e –nodeps neon
+$ rpm -e –nodeps neon-devel
+$ rpm -ivh neon-0.29.5-2.fc15.i686.rpm neon-devel-0.29.5-2.fc15.i686.rpm
+
+2. commit:
+$ git svn clone file:///tmp/test-svn -T trunk -b branches -t tags
+(note: equls $ git svn clone file:///tmp/test-svn -s)
+$ git svn dcommit
 ------------------------------------
 * --- Setup gitolite gitweb
 
