@@ -1339,6 +1339,10 @@ $ su -
 
 # yum -y --nogpgcheck install http://install.linux.ncsu.edu/pub/yum/itecs/public/bumblebee/fedora20/noarch/bumblebee-release-1.1-1.noarch.rpm
 # yum -y install yum install VirtualGL  bbswitch bumblebee bumblebee-nvidia  primus -y
+
+* --- Vim + Fish = “E484: Can’t open file /tmp/vRDNVqe/0″ error
+(note: &quot;in the ~/.vimrc config file to use a different shell for running commands&quot;)
+set shell=/bin/sh
 ------------------------------------
 * --- Install grub on PHD(Portable Hard Disk)
 $ fdisk /dev/sdb ...
