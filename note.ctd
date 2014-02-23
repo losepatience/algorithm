@@ -1330,6 +1330,7 @@ $ su -
 			readline-devel libzip-devel xorg-x11-proto-devel libbsd-devel \
 			libbsd glibc-devel libX11-devel help2man autoconf  glib2 \
 			glib2-devel kernel-devel kernel-headers automake gtk2-devel -y
+
 # yum install p7zip p7zip-plugins nautilus-actions bluefish xclip fish yumex -y
 # yum install vim vim-X11 wmctrl -y
 
