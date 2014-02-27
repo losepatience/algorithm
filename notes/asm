@@ -34,9 +34,13 @@ cpsr:
 
 * ------ PC 
 PC 总指向正在取址的指令, 在多级流水线中, 该地址等于
-正执行指令地址加 8.
-bl 把 pc - 4 放入 lr, 即 lr 为 bl 指令的下条指令地址.
-pc 读写值不对称: mov pc, pc ;跳转到下面第 2 条语句
+**正执行指令地址加 8.
+**bl 把 pc - 4 放入 lr, 即 lr 为 bl 指令的下条指令地址.
+pc 读写值不对称: mov pc, pc ;跳转到下面第 2 条语句(right!)
+**所谓正在执行某条指令时发生中断，指令是原子的，此指令会执行完.
+函数返回: mov pc, lr	@ lr = pc(orig） - 4
+中断返回: mov pc, lr - 4	@ lr = pc(orig)
+
 
 注意: str pc, addr 保存的值可能是当前指令下面的 8 或
 12 字节偏移(取决与芯片设置), 所以一般别用 str 操作 pc
@@ -56,6 +60,12 @@ b[l]x 指令根据跳转地址的最低位可转换为 thumb 状态
 * ------ bss 段:
 存放程序中未初始化的全局变量的一块内存区域, u-boot 在
 链接脚本中指定该段的起始位置, 并计算大小.
+
+* ------ label
+_armboot_start:
+     .word _start 
+label 地址由链接脚本和 gcc 编译所带的 -Ttext 选项共同决定.
+最终的地址为: 链接脚本中指定的值加上 gcc 中 -Ttext 的参数
 
 * ------ gas 注释
 ;  @  /**/
@@ -156,7 +166,10 @@ ldr r0, =0xffabcdef	;此处 ldr 是宏, 用于超出范围的常数/标签
 *
 ldr r0, [r1, #4]	;r0 ← [r1 + 4]  
 ldr r0, [r1, #4]!	;r0 ← [r1 + 4]	, r1 ← r1 + 4
-ldr r0, [r1], #4	;r0 ← [r1]	, r1 ← r1 + 4  
+ldr r0, [r1], #4	;r0 ← [r1]	, r1 ← r1 + 4
+*
+ldr r0, label @ after compile: ldr r0, [pc, #n] @ in literal pool
+adr r0, label @ after compile: add r0, #offset
 
 * ------ 多寄存器寻址
 ldmia r0, {r2, r1} ;与寄存器顺序无关: r1 ← [r0], r2 ← [r0 + 4]
@@ -253,6 +266,12 @@ ARMV6 用 SWP 原子交换寄存器和内存数据, 用于实现信号量操作
 ldr 
 
 * ------ inline asm
+__asm__ __volatile__(  
+     代码列表  
+     : 输出运算符列表  
+     : 输入运算符列表  
+     : 被更改资源列表  # 指示编译器压栈
+);
 __asm__: 同 asm, 是汇编代码指示符. 因 gcc 初期没有 asm 关键字
 为避免 asm 与变量名冲突纳入了 __asm__.
 __volatile__: 只是 gcc 编译时不要对代码进行优化! 即保持汇编
@@ -262,8 +281,18 @@ __asm__ __volatile__(
 	"orr r12, r12, #0xc0\n\t"
 	"msr cpsr_c, r12":::"r12", "cc", "memory"
 );
-.-----------.------------.      .----------.----------------------. 
-| constrain |    含义    |      | modifier |       说明           |
+
+  rn, 指示编译器压栈
+  If our instruction can alter the condition code register,
+we have to add "cc" to the list of clobbered registers.
+  If our instruction modifies memory in an unpredictable fashion,
+add "memory" to the list of clobbered registers. This will cause
+GCC to not keep memory values cached in registers across the
+assembler instruction. We also have to add the volatile keyword
+if the memory affected is not listed in the inputs or outputs of
+the asm.
+.-----------.------------.      .----------.----------------------.
+| constrain |    含义     |      | modifier |       说明            |
 .-----------+------------.      .----------+----------------------.
 |  r/l      | r0-r15     |      |  none    | read-only(4 input)   |
 .-----------+------------.      .----------+----------------------.
@@ -275,4 +304,228 @@ __asm__ __volatile__(
 ^-----------^------------^      ^----------^----------------------^
 
 
+* ------ 内存屏障
+指令执行分成 取指, 译码, 访存、执行, 写回若干阶段. 流水线是并行的.
+比如说 CPU 有一个加法器和一个除法器, 那么一条加法指令和一条除法指
+令就可能同时处于 "执行" 阶段. 最终乱序执行完成. 这就是所谓的
+"顺序流入, 乱序流出".
 
+CPU 的乱序执行并不是任意的乱序, 而是以保证程序上下文因果关系为前
+提, 比如：a++; b=f(a); c--;
+由于 b=f（a）依赖于 a++ 的执行结果, 所以将在"执行"阶段之前被阻
+塞, 直到 a++ 执行结果生成出来; 而 c-- 跟前面没有依赖, 它可能在
+b=f(a) 之前就能执行完
+
+以读屏障为例, 它用于保证读操作有序. 屏障之前的读操作一定会先于屏障
+之后的读操作完成, 写操作不受影响. 同属于屏障的某一侧的读操作也不受
+影响.
+dmb 等待数据缓冲真正写入器件
+dsb 等待流水线指令全部完成
+isb 清空流水线并重新加载指令流水线
+
+* ------ 原子操作
+ldrex 和 strex 是 AMRV6 引入的新的同步机制, 取代了过去的 SWP
+指令. 与 address monitor 协同工作, 为内存的访问提供了一个状态机.
+
+1. ldrex 会为执行处理器做一个标记(tag), 说当前对该物理地址已经有
+一个 CPU 访问了, 但是还没有访问完毕.
+2. strex 指令执行时, 会检查是否存在这个标记. 如果存在, 那么将完成
+这次 store 的过程, 并且返回 0, 然后清除该标记. 如果没有这个标记,
+不会完成store, 返回 1
+
+static inline void atomic_add(int i, atomic_t *v)
+{
+	unsigned long tmp;
+	int result;
+
+	__asm____volatile__("@ atomic_add\n"
+	"1:	ldrex	%0, [%3]\n"
+	"	add	%0, %0,%4\n"
+	"	strex	%1, %0,[%3]\n"
+	"	teq	%1, #0\n"
+	"	bne	1b"
+	:"=&r" (result), "=&r" (tmp), "+Qo"(v->counter)
+	:"r" (&v->counter), "Ir" (i)
+	:"cc");
+}
+根据 Linux 内核里面 atomic_add 的实现, 分析一个 UP 上的并发情景.
+
+1. 首先会执行指令 ldrex 添加一个标记(Tag)
+2. 假设此时发生了中断, 在中断处理或切换上下文后需对该值进行原子加一.
+3. 在新上下文中执行指令 ldrex, strex. 由于此时有标记, strex 成功
+   执行，而后更新内存，清除标记。
+4. 假设此时中断返回, 被中断的任务继续进行. 当执行strex时, 会发现标记
+   已被清除, 此时 strex 就不会更新内存, 并且返回 1
+5. 跳转到 1(bne	1b), 重新执行
+
+* ------ __attribute__((weak, alias("abc")))
+weak 弱类型的函数可以被其它同名函数覆盖(即不会发生冲突), 如果没有其它
+同名函数, 就使用该 weak 函数, 类似于是默认函数.
+
+in order to use the alias attribute, you cannot alias a symbol
+outside of the translation unit. So not use alias in head files.
+use it like this:
+
+foo.h:
+ void pr_debug(void);
+
+foo.c:
+ static void print(void)
+ {
+ 	printf("%s\n", __func__);
+ }
+void pr_debug(void) __attribute__ ((weak, alias("print")));
+
+utils.c:
+ #include "foo.h"
+ int main(void)
+ {
+ 	pr_debug();
+ 	return 0;
+ }
+
+
+* ------ things about mmu
+
+va ------> tlb ---cached---> access
+            |(not cached)
+            V
+      check ap ---noperm---> exception
+            | perm
+            V
+   check C bit ---C=0------> access from memory
+            | C=1
+            V
+   access from cache
+   
+.--------.   2    .--------.      .--------.      .--------.
+|   AC   | domain |        |  1   |        |  1   |        |
+|hardware| <----- |  TLB   |<---> |  TLB   |<---> |        |
+^--------^    .-> |        |      |        |      |        |
+    |         |   |        |      ^--------^  1   |  main  |
+    |         |   |        | -------------------> | memory |
+   2|abort    |   ^--------^   |                  |        |
+    |        1|     2|C,B      |                  |        |
+    V         |   .--v-----.   |  .----------. 4  |        |
+.--------.    |  4| cache &|   `->|   cache  |<-->|        |
+|  ARM   | -----> |   WB   |<---> |line fetch|    |        |
+^--------^   VA   ^--------^      ^----------^    ^--------^
+
+ 31                    20 19 18 17 16 15     12   10  9  8     5  4  3  2  1 0
+------------------------.--.--.--.--.--.------.----.--.--------.--.--.--.----.
+| section base address  |NS| 0|nG| S| X| TEX  | AP | I| domain |XN| C| B| 1 0|
+------------------------^--^--^--^--^--^------^----^--^--------^--^--^--^----^
+ x x x x x x x x x x x x  0  0  0  0  0  1 0 1  1 1  x  0 0 0 0  0  1  1  1 0
+XN Bit The execute-never bit. Determines whether the region is executable
+I Bit The meaning of this bit is IMPLEMENTATION DEFINED.
+X Bit APX(AP[2])
+Bit [18], when bits [1:0] == 0b10 
+ 0	Descriptor is for a Section
+ 1	Descriptor is for a Supersection.
+
+
+TEX(101): L2 cache write-back, write-allocate
+
+
+1. enable mmu:
+setup pagetable --> invalidate ICache and tlb --> enable mmu
+   if va != pa, we need remap the code near(after) the
+   command enbling mmu with va = pa. 
+          0x100 --> enable mmu cmd 
+   pc --> 0x104 --> next cmd 
+   
+ENTRY(__turn_mmu_on)
+	mov	r0, r0
+	instr_sync
+	mcr	p15, 0, r0, c1, c0, 0		@ write control reg
+	mrc	p15, 0, r3, c0, c0, 0		@ read id reg
+	instr_sync
+	mov	r3, r3
+	mov	r3, r13
+	mov	pc, r3
+__turn_mmu_on_end:
+
+   "mrc	p15, 0, r3, c0, c0, 0" could be replace by "mov	r0, r0",
+   It's actually the recommended sequence for most ARM CPUs,
+   except Xscale in this respect.
+     By ARM compliant implementation, this instrument guarantees
+   that the write to the CP register has taken effect.
+
+
+2. disable mmu:
+disable DCache --> invalidate TLB --> disable mmu
+
+3. CP15 domain register contains 16 domains, each occupies 2 bits.
+   00: no access
+   @01: need check AP bits(reference to arm datasheet)
+   10: reserved
+   11: access without checking AP bits
+   
+* ------ things about cache
+清除(invalidate)操作清零相应 cache 行的有效位, 从而强制将内存
+数据加载到cache之中 
+对于采用写回策略的 Dcache, 就需要使用清理(clean)操作. 把脏的
+cache 行强制写到主存, 并把 cache 行中的脏位清零. 清理 cache
+可以重建 cache 与主存的一致性, 它只用在使用写回策略的 Dcache上.
+To clean, clean the L1 cache first then L2
+To invalidate, invalidate the L2 cache first then L1.
+
+  When you clear the C bit in the CP15 SC Register for
+a given processor, data caching is disabled and no new cache
+lines are allocated to the L1 data cache and L2 cache because
+of requests from that processor.
+  When you disable the cache, all Write-Back Cacheable requests
+still look up the L1 cache.
+
+"Now I think that it is a bootloader requirement.
+"
+"And in the arm linux kernel's booting requirement,
+"Data cache must be off and must not contain any stale data.
+"
+"> You must invalidate the instruction cache, the data cache, and BTAC
+"> before using them.
+"> You are not required to invalidate the main TLB, even though it is
+"> recommended for
+"> safety reasons. This ensures compatibility with future revisions of
+"> the processor.
+">
+"> But the kernel does.. ( __v7_setup in proc-v7.S )
+"> clean & invalidate before turning on the MMU, not just 'invalidate'.
+">
+"> If dcache tag&data ram has garbage data when power up,
+"> I think some dirty data lines can be flushed into to L2 or L3 memory
+"> because kernel does clean.
+"> And It can pollute the memory.
+">
+"> Is it possible in cortex-A9?
+
+
+Cache 写回内存有两种模式：
+1. Write Back: 
+  Cache Line 中的数据被 CPU 核修改时并不立刻写回内存,
+  Cache Line和内存中的数据会暂时不一致, 在Cache Line
+  中有一个Dirty位标记这一情况. 当一条 Cache Line 要被
+  其它 VA 的数据替换时, 如果不是 Dirty 的就直接替换掉,
+  如果是 Dirty 的就先写回内存再替换.
+
+2. Write Through:
+  修改 Cache Line 中的数据时就立刻写回内存, Cache Line
+  和内存中的数据总是一致的.
+
+3. set associative cache
+   8way set associative, 32bytes cache line ---> numset=4K/32(128)
+   .--------------------------------------.--------------.----------.
+   |        20bits pfn(4k-aligned)        | set idx(128) |          |
+   ^--------------------------------------^--------------^----------^
+  31                                 12 11          05 04      00
+
+   cache 眼中, 内存被分为许多 4KB 大小的页, 每 32(line-size)B 称一个缓存线.
+
+   SAC 即内存中一条给定的"缓存线"只能被保存在一个特定的 set 中.
+   页的第 n 条缓存线(offset: 32*n -- 32*(n+1))须存储到 set n.
+
+
+* ------ stack
+  局部变量可能直接使用寄存器储存, 局部数组使用 stack.
+  uCOS 中每个任务都有自己的堆栈, 异常也有自己的 stack. 如果支持中断嵌套,
+  堆栈可能需要比较大. 注意堆栈溢出, 会导致各种奇怪的现象.

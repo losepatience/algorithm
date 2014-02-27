@@ -128,6 +128,29 @@ nnoremap <C-i>f :cs f f <C-R>=expand("<cfile>")<CR><CR>
 nnoremap <C-i>i :cs f i <C-R>=expand("<cfile>")<CR><CR>
 nnoremap <C-i>d :cs f d <C-R>=expand("<cword>")<CR><CR>
 
+map <F12> :set paste
+\<CR>ggO/* ~.~ *-c-*
+\<CR> *
+\<CR> * Copyright (c) 2013, John Lee <furious_tauren@163.com>
+\<CR> * <Esc>:read !date<CR>kJ$a
+\<CR> *
+\<CR> * This program is free software; you can redistribute it and/or
+\<CR> * modify it under the terms of the GNU General Public License as
+\<CR> * published by the Free Software Foundation; either version 2 of
+\<CR> * the License, or (at your option) any later version.
+\<CR> *
+\<CR> * This program is distributed in the hope that it will be useful,
+\<CR> * but WITHOUT ANY WARRANTY; without even the implied warranty of
+\<CR> * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+\<CR> * GNU General Public License for more details.
+\<CR> *
+\<CR> * You should have received a copy of the GNU General Public License
+\<CR> * along with this program; if not, write to the Free Software
+\<CR> * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+\<CR> * MA 02111-1307 USA
+\<CR> */
+\<CR><esc> :set nopaste<CR>
+
 """"""""""""""""""""""""""""""
 " ctags
 """"""""""""""""""""""""""""""
