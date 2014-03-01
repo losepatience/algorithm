@@ -1381,29 +1381,52 @@ $ su -
 # yum remove ibus
 # gsettings set org.gnome.settings-daemon.plugins.keyboard active false
 # yum install fcitx  fcitx-table fcitx-table-chinese fcitx-pinyin
+(note: choose english keyboard Fcitx Configuration.
+       Add english input method first, then pinyin
+)
 
 # yum install unrar git git-gui gitk gnupg gnupg2 flex bison gperf gcc \
-			gcc-c++ zip curl zlib-devel wget mtd-utils mtd-utils-ubi \
-			fakeroot fakeroot-libs gawk subversion unixODBC util-linux \
-			SDL-devel esound-devel esound-libs wxGTK-devel ncurses-devel \
-			readline-devel libzip-devel xorg-x11-proto-devel libbsd-devel \
-			libbsd glibc-devel libX11-devel help2man autoconf  glib2 \
-			glib2-devel kernel-devel kernel-headers automake gtk2-devel -y
+	gcc-c++ zip curl zlib-devel wget mtd-utils mtd-utils-ubi \
+	fakeroot fakeroot-libs gawk subversion unixODBC util-linux \
+	SDL-devel esound-devel esound-libs wxGTK-devel ncurses-devel \
+	readline-devel libzip-devel xorg-x11-proto-devel libbsd-devel \
+	libbsd glibc-devel libX11-devel help2man autoconf  glib2 \
+	glib2-devel kernel-devel kernel-headers automake gtk2-devel -y
 
-# yum install p7zip p7zip-plugins nautilus-actions bluefish xclip fish yumex -y
+# yum install p7zip p7zip-plugins bluefish xclip fish yumex -y
 # yum install vim vim-X11 wmctrl -y
 
 # export LANG=en_US
 # xdg-user-dirs-gtk-update
 
 # yum -y --nogpgcheck install http://install.linux.ncsu.edu/pub/yum/itecs/public/bumblebee/fedora20/noarch/bumblebee-release-1.1-1.noarch.rpm
-# yum -y install yum install VirtualGL  bbswitch bumblebee bumblebee-nvidia  primus -y
+# yum install yum install VirtualGL bbswitch bumblebee bumblebee-nvidia primus
 (note: By default, primus renders up to 60 fps. To more:
-       $ vblank_mode=0 optirun -b primus &lt;application&gt; [application-parameters])
+       $ vblank_mode=0 optirun -b primus &lt;application&gt; [params]
+)
+
+# yum install conky -y
+$ su linus
+$ wget http://gnome-look.org/CONTENT/content-files/139024-Conky-lua1.tar.gz
+$ tar zxf 139024-Conky-lua1.tar.gz
+$ tar zxf ./Conky-lua/Conky\ fedora-lua.tar.gz -C .
+$ mkdir -p ~/.lua/scripts ~/.conky
+$ cp ./Conky\ fedora-lua/clock_rings.lua ~/.lua/scripts
+$ cp ./Conky\ fedora-lua/conkyrc ~/.conkyrc
+$ cp ./Conky\ fedora-lua/fedora-logo.png ~/.conky
+$ vim ~/.conkyrc
+own_window yes
+own_window_type normal
+own_window_argb_visual yes
+own_window_transparent yes
+(note: comment it out the line: minimum_size
+       comment out weather
+)
 
 * --- Vim + Fish = “E484: Can’t open file /tmp/vRDNVqe/0″ error
-(note: &quot;in the ~/.vimrc config file to use a different shell for running commands&quot;)
-set shell=/bin/sh
+(note: &quot;in the ~/.vimrc config file: set shell=/bin/sh&quot;)
+
+
 ------------------------------------
 * --- Install grub on PHD(Portable Hard Disk)
 $ fdisk /dev/sdb ...
