@@ -1396,6 +1396,12 @@ $ su -
 # yum install p7zip p7zip-plugins bluefish xclip fish yumex -y
 # yum install vim vim-X11 wmctrl -y
 
+# vim /etc/passwd
+(note: linus:x:1000:1000:linus:/home/linus:/usr/bin/fish
+    or 
+       $ chsh -s /usr/bin/fish
+)
+
 # export LANG=en_US
 # xdg-user-dirs-gtk-update
 
