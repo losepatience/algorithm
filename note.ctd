@@ -2849,10 +2849,13 @@ int main(void)
 	return 0;
 }
 $ arm-linux-gcc -c hello.c
-$ arm-linux-ld -T 0x30000000 hello.o -o hello
+$ arm-linux-ld -Ttext=0x30000000 hello.o -o hello
 (should run go 0x30000000 in uboot)
-$ arm-linux-objcopy -I elf32-littlearm -O binary test test.bin
+$ arm-linux-objcopy -I elf32-littlearm -O binary hello hello.bin
 (elf -&gt; bin)
+$ arm-linux-objcopy -d hello
+
+
 
 @ C 压栈出栈过程
 @ ip: corrupted, used as old sp and its old value not saved
