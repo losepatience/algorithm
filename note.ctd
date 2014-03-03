@@ -2849,7 +2849,7 @@ int main(void)
 	return 0;
 }
 $ arm-linux-gcc -c hello.c
-$ arm-linux-ld -Ttext=0x30000000 hello.o -o hello
+$ arm-linux-ld -Ttext=0x30000000 -Tdata=0x40000000 hello.o -o hello
 (should run go 0x30000000 in uboot)
 $ arm-linux-objcopy -I elf32-littlearm -O binary hello hello.bin
 (elf -&gt; bin)
@@ -2873,6 +2873,21 @@ foo:    mov     ip, sp                  @ .---------------.
                                         @ ^---------------^
         sub     sp, fp, #12             @ |    fp         | -&gt; old fp(fp - 12)
         ldmfd   sp, {fp, sp, pc}        @ ^---------------^
+
+
+
+* ------ arm 寄存器组:
+r0-r12 共用, 压栈保存
+每种模式都有各自的 r13, r14. 故不需为 svc 的 r13-r14 压栈. 
+压的是 irq 模式的 r13-r14.
+压栈 r13 是为恢复 irq 的 sp 寄存器. 
+压栈 r14 是为调用其他函数. 
+^: 代表 mov     cpsr, spsr 与 ldm 操作同时进行, 否在会出问题
+irq:
+	sub	lr, lr, #4
+	stmfd	sp!, {r0-r14}
+	bl	do_irq
+	ldmfd	sp, {r0-r13, pc}^
 
 * ------ arm 寄存器组:
 上电, ARM 默认 SVC 模式, ARM 状态,  IRQ&amp;FIQ 关闭. 但考虑
