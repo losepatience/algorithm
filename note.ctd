@@ -1432,6 +1432,21 @@ own_window_transparent yes
 * --- Vim + Fish = “E484: Can’t open file /tmp/vRDNVqe/0″ error
 (note: &quot;in the ~/.vimrc config file: set shell=/bin/sh&quot;)
 
+* --- lamp
+# yum install httpd -y
+# systemctl enable httpd.service
+# systemctl start httpd.service(systemctl reload httpd.service)
+# firewall-cmd --permanent --add-service=http
+
+# yum install mysql mysql-server
+# systemctl enable mysqld.service
+# systemctl start mysqld.service
+# mysql_secure_installation
+
+# yum install php php-mysql -y
+# vim /var/www/html/info.php
+(note: &lt;?php phpinfo(); ?&gt;)
+# systemctl restart httpd.service
 
 ------------------------------------
 * --- Install grub on PHD(Portable Hard Disk)
@@ -2824,6 +2839,37 @@ SUID 的优先级比 SGID 高, 当一个可执行程序设置了 SUID,
 </rich_text></node><node name="asm" prog_lang="c" readonly="False" tags="" unique_id="4"><rich_text>arm 汇编实验环境: 
  a. linux c 语言调用汇编写的函数
  b. u-boot go 命令调试(bin)
+
+hello.c
+void myprintf(char *fmt, ...);
+int main(void)
+{
+	myprintf = 0xabcdabcd;	/* lookup uboot.map for printf */
+	myprintf(&quot;hello, this func calls printf in uboot\n&quot;);
+	return 0;
+}
+$ arm-linux-gcc -c hello.c
+$ arm-linux-ld -T 0x30000000 hello.o -o hello
+(should run go 0x30000000 in uboot)
+$ arm-linux-objcopy -I elf32-littlearm -O binary test test.bin
+(elf -&gt; bin)
+
+@ C 压栈出栈过程
+@ ip: corrupted, used as old sp and its old value not saved
+@ lr: changed if you call a function
+@ fp: pointer to stack frame, then sp could be changed
+@ pc: pushed for debug and not be popped
+foo:    mov     ip, sp                  @ .---------------.
+        stmfd   sp!, {fp, ip, lr, pc}   @ |    old data   | &lt;- ip
+                                        @ ^---------------^
+        sub     fp, ip, #4              @ |    pc         | &lt;- fp(frame pointer)
+                                        @ ^---------------^
+                                        @ |    lr         | -&gt; old pc
+        sub     sp, sp, #500            @ ^---------------^
+        bl      test                    @ |    ip         | -&gt; old sp
+                                        @ ^---------------^
+        sub     sp, fp, #12             @ |    fp         | -&gt; old fp
+        ldmfd   sp, {fp, sp, pc}        @ ^---------------^
 
 * ------ arm 寄存器组:
 上电, ARM 默认 SVC 模式, ARM 状态,  IRQ&amp;FIQ 关闭. 但考虑
