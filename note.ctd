@@ -2864,11 +2864,11 @@ foo:    mov     ip, sp                  @ .---------------.
                                         @ ^---------------^
         sub     fp, ip, #4              @ |    pc         | &lt;- fp(frame pointer)
                                         @ ^---------------^
-                                        @ |    lr         | -&gt; old pc
+                                        @ |    lr         | -&gt; old pc(fp - 4)
         sub     sp, sp, #500            @ ^---------------^
-        bl      test                    @ |    ip         | -&gt; old sp
+        bl      test                    @ |    ip         | -&gt; old sp(fp - 8)
                                         @ ^---------------^
-        sub     sp, fp, #12             @ |    fp         | -&gt; old fp
+        sub     sp, fp, #12             @ |    fp         | -&gt; old fp(fp - 12)
         ldmfd   sp, {fp, sp, pc}        @ ^---------------^
 
 * ------ arm 寄存器组:
