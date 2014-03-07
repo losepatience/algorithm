@@ -1395,27 +1395,73 @@ $ su -
 # yum remove ibus
 # gsettings set org.gnome.settings-daemon.plugins.keyboard active false
 # yum install fcitx  fcitx-table fcitx-table-chinese fcitx-pinyin
+(note: choose english keyboard Fcitx Configuration.
+       Add english input method first, then pinyin
+)
 
 # yum install unrar git git-gui gitk gnupg gnupg2 flex bison gperf gcc \
-			gcc-c++ zip curl zlib-devel wget mtd-utils mtd-utils-ubi \
-			fakeroot fakeroot-libs gawk subversion unixODBC util-linux \
-			SDL-devel esound-devel esound-libs wxGTK-devel ncurses-devel \
-			readline-devel libzip-devel xorg-x11-proto-devel libbsd-devel \
-			libbsd glibc-devel libX11-devel help2man autoconf  glib2 \
-			glib2-devel kernel-devel kernel-headers automake gtk2-devel -y
+	gcc-c++ zip curl zlib-devel wget mtd-utils mtd-utils-ubi \
+	fakeroot fakeroot-libs gawk subversion unixODBC util-linux \
+	SDL-devel esound-devel esound-libs wxGTK-devel ncurses-devel \
+	readline-devel libzip-devel xorg-x11-proto-devel libbsd-devel \
+	libbsd glibc-devel libX11-devel help2man autoconf  glib2 \
+	glib2-devel kernel-devel kernel-headers automake gtk2-devel -y
 
-# yum install p7zip p7zip-plugins nautilus-actions bluefish xclip fish yumex -y
+# yum install p7zip p7zip-plugins bluefish xclip fish yumex -y
 # yum install vim vim-X11 wmctrl -y
+
+# vim /etc/passwd
+(note: linus:x:1000:1000:linus:/home/linus:/usr/bin/fish
+    or 
+       $ chsh -s /usr/bin/fish
+)
 
 # export LANG=en_US
 # xdg-user-dirs-gtk-update
 
 # yum -y --nogpgcheck install http://install.linux.ncsu.edu/pub/yum/itecs/public/bumblebee/fedora20/noarch/bumblebee-release-1.1-1.noarch.rpm
-# yum -y install yum install VirtualGL  bbswitch bumblebee bumblebee-nvidia  primus -y
+# yum install yum install VirtualGL bbswitch bumblebee bumblebee-nvidia primus
+(note: By default, primus renders up to 60 fps. To more:
+       $ vblank_mode=0 optirun -b primus &lt;application&gt; [params]
+)
+
+# yum install conky -y
+$ su linus
+$ wget http://gnome-look.org/CONTENT/content-files/139024-Conky-lua1.tar.gz
+$ tar zxf 139024-Conky-lua1.tar.gz
+$ tar zxf ./Conky-lua/Conky\ fedora-lua.tar.gz -C .
+$ mkdir -p ~/.lua/scripts ~/.conky
+$ cp ./Conky\ fedora-lua/clock_rings.lua ~/.lua/scripts
+$ cp ./Conky\ fedora-lua/conkyrc ~/.conkyrc
+$ cp ./Conky\ fedora-lua/fedora-logo.png ~/.conky
+$ vim ~/.conkyrc
+own_window yes
+own_window_type normal
+own_window_argb_visual yes
+own_window_transparent yes
+(note: comment it out the line: minimum_size
+       comment out weather
+)
 
 * --- Vim + Fish = “E484: Can’t open file /tmp/vRDNVqe/0″ error
-(note: &quot;in the ~/.vimrc config file to use a different shell for running commands&quot;)
-set shell=/bin/sh
+(note: &quot;in the ~/.vimrc config file: set shell=/bin/sh&quot;)
+
+* --- lamp
+# yum install httpd -y
+# systemctl enable httpd.service
+# systemctl start httpd.service(systemctl reload httpd.service)
+# firewall-cmd --permanent --add-service=http
+
+# yum install mysql mysql-server
+# systemctl enable mysqld.service
+# systemctl start mysqld.service
+# mysql_secure_installation
+
+# yum install php php-mysql -y
+# vim /var/www/html/info.php
+(note: &lt;?php phpinfo(); ?&gt;)
+# systemctl restart httpd.service
+
 ------------------------------------
 * --- Install grub on PHD(Portable Hard Disk)
 $ fdisk /dev/sdb ...
@@ -2807,6 +2853,55 @@ SUID 的优先级比 SGID 高, 当一个可执行程序设置了 SUID,
 </rich_text></node><node name="asm" prog_lang="c" readonly="False" tags="" unique_id="4"><rich_text>arm 汇编实验环境: 
  a. linux c 语言调用汇编写的函数
  b. u-boot go 命令调试(bin)
+
+hello.c
+void myprintf(char *fmt, ...);
+int main(void)
+{
+	myprintf = 0xabcdabcd;	/* lookup uboot.map for printf */
+	myprintf(&quot;hello, this func calls printf in uboot\n&quot;);
+	return 0;
+}
+$ arm-linux-gcc -c hello.c
+$ arm-linux-ld -Ttext=0x30000000 -Tdata=0x40000000 hello.o -o hello
+(should run go 0x30000000 in uboot)
+$ arm-linux-objcopy -I elf32-littlearm -O binary hello hello.bin
+(elf -&gt; bin)
+$ arm-linux-objcopy -d hello
+
+
+
+@ C 压栈出栈过程
+@ ip: corrupted, used as old sp and its old value not saved
+@ lr: changed if you call a function
+@ fp: pointer to stack frame, then sp could be changed
+@ pc: pushed for debug and not be popped
+foo:    mov     ip, sp                  @ .---------------.
+        stmfd   sp!, {fp, ip, lr, pc}   @ |    old data   | &lt;- ip
+                                        @ ^---------------^
+        sub     fp, ip, #4              @ |    pc         | &lt;- fp(frame pointer)
+                                        @ ^---------------^
+                                        @ |    lr         | -&gt; old pc(fp - 4)
+        sub     sp, sp, #500            @ ^---------------^
+        bl      test                    @ |    ip         | -&gt; old sp(fp - 8)
+                                        @ ^---------------^
+        sub     sp, fp, #12             @ |    fp         | -&gt; old fp(fp - 12)
+        ldmfd   sp, {fp, sp, pc}        @ ^---------------^
+
+
+
+* ------ arm 寄存器组:
+r0-r12 共用, 压栈保存
+每种模式都有各自的 r13, r14. 故不需为 svc 的 r13-r14 压栈. 
+压的是 irq 模式的 r13-r14.
+压栈 r13 是为恢复 irq 的 sp 寄存器. 
+压栈 r14 是为调用其他函数. 
+^: 代表 mov     cpsr, spsr 与 ldm 操作同时进行, 否在会出问题
+irq:
+	sub	lr, lr, #4
+	stmfd	sp!, {r0-r14}
+	bl	do_irq
+	ldmfd	sp, {r0-r13, pc}^
 
 * ------ arm 寄存器组:
 上电, ARM 默认 SVC 模式, ARM 状态,  IRQ&amp;FIQ 关闭. 但考虑
