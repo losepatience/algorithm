@@ -3560,7 +3560,7 @@ $(join &lt;list1&gt;,&lt;list2&gt;)
 
 $(foreach &lt;var&gt;,&lt;list&gt;,&lt;text&gt;)
 $(origin &lt;variable&gt;)
-
+$(if $(ARCH),ARCH=$(ARCH),) $(if CONDITION,then value1,else value)
 call 函数是唯一一个可以用来创建新的参数化的函数. 你可以写一
 个非常复杂的表达式这个表达式中, 你可以定义许多参数, 然后你可
 以用 call 函数来向这个表达式传递参数:
