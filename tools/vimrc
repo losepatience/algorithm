@@ -32,7 +32,8 @@ autocmd GUIEnter * set visualbell t_vb=
 """"""""""""""""""""""""""""""
 au GUIEnter * call MaximizeWindow()
 function! MaximizeWindow()
-    silent !wmctrl -r :ACTIVE: -b add,maximized_vert,maximized_horz
+    " silent !wmctrl -r :ACTIVE: -b add,maximized_vert,maximized_horz
+    silent !wmctrl -r :ACTIVE: -b add,fullscreen
 endfunction
 
 """"""""""""""""""""""""""""""
