@@ -1469,7 +1469,8 @@ $ su -
 # xdg-user-dirs-gtk-update
 
 # yum -y --nogpgcheck install http://install.linux.ncsu.edu/pub/yum/itecs/public/bumblebee/fedora20/noarch/bumblebee-release-1.1-1.noarch.rpm
-# yum install yum install VirtualGL bbswitch bumblebee bumblebee-nvidia primus
+# yum -y --nogpgcheck install http://install.linux.ncsu.edu/pub/yum/itecs/public/bumblebee-nonfree/fedora20/noarch/bumblebee-nonfree-release-1.1-1.noarch.rpm
+# yum install VirtualGL bbswitch bumblebee bumblebee-nvidia primus
 # usermod -a -G bumblebee linus
 (note: By default, primus renders up to 60 fps. To more:
        $ vblank_mode=0 optirun -b primus &lt;application&gt; [params]
