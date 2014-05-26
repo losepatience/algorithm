@@ -1137,6 +1137,31 @@ own_window_transparent yes
        comment out weather
 )
 
+* --- conky-colors
+# yum install ImageMagick conky
+# wget http://125.39.35.131/files/21220000032B6CD8/www.deviantart.com/download/244793180/conky_colors_by_helmuthdu-d41qrmk.zip
+# unzip conky_colors_by_helmuthdu-d41qrmk.zip
+# cd conky_colors
+# make &amp;&amp; make install
+# conky-colors --theme=custom --default-color=black --color0=cyan --color1=green \
+    --color2=orange --color3=red --fedora --cpu=2 --updates --proc=3 --clock=modern \
+    --calendar --hd=default --photord --network --unit=C --side=right \
+    --bbcweather=1586 --weather=CHXX0100 
+
+# vim ~/conkycolors/conkyrc
+:%s/aptitude/yum/g
+:%s!(null)!/usr/share/conkycolors!g
+:%s/eth0/actual-ethname/g
+:%s/wlan0/actual-wlanname/g
+# vim /usr/share/conkycolors/bin/conkyPhotoRandom
+:s!xxxxxx!/home/linus/Pictures
+
+* --- qq
+# wget http://124.14.17.168/cdn.baidupcs.com/file/64d734cf2b2ba0d39155997f7b40afcb?xcode=f5e85a0994d2b5a4177a7e834f7371099a0d648bcc869116&amp;fid=2164772222-250528-54159920726722&amp;time=1401086311&amp;sign=FDTAXER-DCb740ccc5511e5e8fedcff06b081203-nPWA2j4W7fmtXFTnwa%2BwPagp5o0%3D&amp;to=cb&amp;fm=Q,B,G,bs&amp;sta_dx=162&amp;sta_cs=7&amp;sta_ft=rpm&amp;sta_ct=5&amp;newver=1&amp;expires=1401089629&amp;rt=sh&amp;r=288826904&amp;logid=3693480022&amp;sh=1&amp;vuk=1008182031&amp;fn=wineqq-20140102-1.fc20.noarch.rpm&amp;wshc_tag=0&amp;wsiphost=ipdbm
+# rpm -qpR wineqq-20140102-1.fc20.noarch.rpm
+(note: 查看包依赖，然后手动安装)
+# rpm -ivh wineqq-20140102-1.fc20.noarch.rpm
+
 * --- Vim + Fish = &quot;E484: Can’t open file /tmp/vRDNVqe/0&quot; error
 (note: &quot;in the ~/.vimrc config file: set shell=/bin/sh&quot;)
 
