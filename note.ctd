@@ -1182,6 +1182,9 @@ own_window_transparent yes
 # systemctl restart httpd.service
 
 # yum install thunderbird wps
+
+* --- install ccs5
+# sudo yum install libusbx.i686 alsa-lib.i686 atk.i686 dbus-glib.i686 gdk-pixbuf2.i686 pango.i686 libgdk-x11-2.0.so.0 libXt.so.6 libcanberra-gtk2.i686 GConf2.i686 gnome-vfs2.i686 ORBit2.i686 libpng12.i686 ncurses-libs.i686 libusb.i686
 ------------------------------------
 * --- Install grub on PHD(Portable Hard Disk)
 $ fdisk /dev/sdb ...
