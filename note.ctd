@@ -3152,12 +3152,24 @@ Cache 写回内存有两种模式:
    SAC 即内存中一条给定的&quot;缓存线&quot;只能被保存在一个特定的 set 中.
    页的第 n 条缓存线(offset: 32*n -- 32*(n+1))须存储到 set n.
 
-
-
 4. cache 的使用场合
    a. 收到 packet 后, 要对 packet buffer 做 cache invalidate
    b. 发送 packet 时, 要对 packet buffer 做 cache flush
   descripter 一般结构比较小, 如使用 cache 的话, 做 invalidate/flush 可能得不偿失
+
+5. In systems with multiple layers of caches, some care is needed when performing
+   cache maintenance activity where the implementation does not provide atomic
+   cache maintenance operations. This means systems where cache maintenance must
+   be performed separately on L1 and L2 caches. Examples of such systems include
+   Cortex-A9 coupled with L2C-310, or Cortex-A5 coupled with L2C-310. A particular
+   area of concern is where there are multiple CPUs sharing L2 cache and there is
+   a possibility that one CPU may access memory while another CPU is performing
+   cache maintenance operations. ARM processors provide three kinds of cache
+   maintenance operation, with provision for such operations to be broadcast between
+   processors in an MPCore system. Such operations may be required when an external
+   DMA is available in the system and is not participating in automatic cache
+   coherency management.
+
 
 * ------ stack
   局部变量可能直接使用寄存器储存, 局部数组使用 stack.
