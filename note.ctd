@@ -3127,14 +3127,18 @@ still look up the L1 cache.
 Cache 写回内存有两种模式:
 1. Write Back: 
   Cache Line 中的数据被 CPU 核修改时并不立刻写回内存,
-  Cache Line和内存中的数据会暂时不一致, 在Cache Line
-  中有一个Dirty位标记这一情况. 当一条 Cache Line 要被
+  Cache Line和内存中的数据会暂时不一致, 在 Cache Line
+  中有一个 Dirty 位标记这一情况. 当一条 Cache Line 要被
   其它 VA 的数据替换时, 如果不是 Dirty 的就直接替换掉,
   如果是 Dirty 的就先写回内存再替换.
 
-2. Write Through:
+   Write Through:
   修改 Cache Line 中的数据时就立刻写回内存, Cache Line
   和内存中的数据总是一致的.
+
+2.
+  flush: 把 Cache 内容写回 Memory, 当 Cache 为 Write through, 不需要 Flush
+  invalidate: 把 Cache 内容直接丢掉不要
 
 3. set associative cache
    8way set associative, 32bytes cache line ---&gt; numset=4K/32(128)
@@ -3148,6 +3152,12 @@ Cache 写回内存有两种模式:
    SAC 即内存中一条给定的&quot;缓存线&quot;只能被保存在一个特定的 set 中.
    页的第 n 条缓存线(offset: 32*n -- 32*(n+1))须存储到 set n.
 
+
+
+4. cache 的使用场合
+   a. 收到 packet 后, 要对 packet buffer 做 cache invalidate
+   b. 发送 packet 时, 要对 packet buffer 做 cache flush
+  descripter 一般结构比较小, 如使用 cache 的话, 做 invalidate/flush 可能得不偿失
 
 * ------ stack
   局部变量可能直接使用寄存器储存, 局部数组使用 stack.
