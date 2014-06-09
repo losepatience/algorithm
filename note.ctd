@@ -2573,7 +2573,7 @@ SUID 的优先级比 SGID 高, 当一个可执行程序设置了 SUID,
 的实际用户 ID 是 test 对应的 ID, 但是进程的有效用户 ID
 则是 passwd 文件的所有者 root 的 ID, 因此可以修改
 /etc/passwd 文件.
-</rich_text></node><node name="asm" prog_lang="c" readonly="False" tags="" unique_id="4"><rich_text>																													arm 汇编实验环境: 
+</rich_text></node><node name="asm" prog_lang="c" readonly="False" tags="" unique_id="4"><rich_text>arm 汇编实验环境: 
  a. linux c 语言调用汇编写的函数
  b. u-boot go 命令调试(bin)
 
@@ -2593,12 +2593,16 @@ $ arm-linux-objcopy -I elf32-littlearm -O binary hello hello.bin
 $ arm-linux-objcopy -d hello
 
 
+* ------ apcs
+r0-r3: corrupted
+r4-r9(v1-v6): not changed
+ip(r12): corrupted, used as old sp and its old value not saved
+lr(r14): changed if you call a function
+fp(r11): pointer to stack frame, then sp could be changed
+pc: pushed for debug and not be popped
+因为 sp 在函数中会无节制变化(特别是调用了其他函数时), 所以我们用 fp 来
+指向本函数 sp 的顶部. 之后可以 sub sp, fp, #12 来恢复 sp.
 
-@ C 压栈出栈过程
-@ ip: corrupted, used as old sp and its old value not saved
-@ lr: changed if you call a function
-@ fp: pointer to stack frame, then sp could be changed
-@ pc: pushed for debug and not be popped
 foo:    mov     ip, sp                  @ .---------------.
         stmfd   sp!, {fp, ip, lr, pc}   @ |    old data   | &lt;- ip
                                         @ ^---------------^
@@ -2620,6 +2624,7 @@ r0-r12 共用, 压栈保存
 压栈 r13 是为恢复 irq 的 sp 寄存器.
 压栈 r14 是为调用其他函数.
 ^: 代表 mov     cpsr, spsr 与 ldm 操作同时进行, 否在会出问题
+
 irq:
 	sub	lr, lr, #4
 	stmfd	sp!, {r0-r14}
@@ -2777,7 +2782,10 @@ buf: .skip 512 ; 插入 512 字节, 其值不可预料
 mov r0, #0x17 ;0x17 angel_SWIreason_EnterSVC 半主机操作
 swi 0x123456  ;0x123456 是 arm 指令集的半主机操作编号
 
-* ------ 寄存器寻址 
+* ------ mov 指令中的立即数
+mov r0, 0x10300000	@ 非 0 位不超过 2 个就行
+
+* ------ 寄存器寻址
 * b 是相对当前 PC 的跳转, 偏移量通过 bit[23:0] 算出, 32M
 uboot 可在任何内存运行, 故 b reset 是不二之选
 ldr 指令操作数范围是 4k, ldr 宏到数据缓存区的偏移范围 4k
