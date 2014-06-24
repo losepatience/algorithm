@@ -2769,6 +2769,10 @@ buf: .skip 512 ; 插入 512 字节, 其值不可预料
 .ascii 'a'
 .endr ; 插入 3 个 0x61
 
+* ------ .^
+the ^ qualifier specifies that the CPSR is restored from the SPSR
+
+
 * ------ .section .type
 .section: 声明一个段
 .section .start, &quot;awx&quot; ;allocatable, writable, executable
