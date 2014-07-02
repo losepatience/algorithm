@@ -1183,8 +1183,48 @@ own_window_transparent yes
 
 # yum install thunderbird wps
 
-* --- install ccs5
-# sudo yum install libusbx.i686 alsa-lib.i686 atk.i686 dbus-glib.i686 gdk-pixbuf2.i686 pango.i686 libgdk-x11-2.0.so.0 libXt.so.6 libcanberra-gtk2.i686 GConf2.i686 gnome-vfs2.i686 ORBit2.i686 libpng12.i686 ncurses-libs.i686 libusb.i686
+* --- install ds5 on fedora20 x64
+$ sudo yum install glibc gtk2 libstdc++ alsa-lib atk cairo \
+	fontconfig freetype libX11 libXext libXi libXrender \
+	libXt libXtst webkitgtk
+
+$ sudo yum install glibc.i686 fontconfig.i686 freetype.i686 \
+	libICE.i686 ncurses-libs.i686 libSM.i686 libstdc++.i686 \
+	libusb.i686 libX11.i686 libXcursor.i686 libXext.i686 \
+	libXft.i686 libXmu.i686 libXrandr.i686 libXrender.i686 zlib.i686
+
+$ ./SoCEDSSetup-14.0.0.200-linux.run
+
+$ gvim ~/.bash_profile
+	ALTERA=/home/tyro/altera/14.0
+	export QUARTUS_ROOTDIR=$ALTERA/quartus
+	export LD_LIBRARY_PATH=$QUARTUS_ROOTDIR/linux32:$LD_LIBRARY_PATH
+(note: for browse usb-blaster)
+
+$ sudo yum remove biosdevname
+$ sudo gvim /etc/udev/rules.d/70-persistent-net.rules
+	SUBSYSTEM==&quot;net&quot;, ACTION==&quot;add&quot;, DRIVERS==&quot;?*&quot;, ATTR{address}==&quot;c8:1f:66:01:07:32&quot;, ATTR{dev_id}==&quot;0x0&quot;, ATTR{type}==&quot;1&quot;, KERNEL==&quot;eth*&quot;, NAME=&quot;eth0&quot;
+$ sudo gvim /etc/sysconfig/network-scripts/ifcfg-eth0
+	TYPE=&quot;Ethernet&quot;
+	BOOTPROTO=&quot;dhcp&quot;
+	DEFROUTE=&quot;yes&quot;
+	IPV4_FAILURE_FATAL=&quot;no&quot;
+	IPV6INIT=&quot;yes&quot;
+	IPV6_AUTOCONF=&quot;yes&quot;
+	IPV6_DEFROUTE=&quot;yes&quot;
+	IPV6_FAILURE_FATAL=&quot;no&quot;
+	NAME=eth0
+	UUID=&quot;f4eb5903-3a71-4c7e-9c92-767acba5ecb1&quot;
+	ONBOOT=&quot;yes&quot;
+	DNS1=123.125.81.6
+	DNS2=114.114.114.114
+	HWADDR=C8:1F:66:01:07:32
+	PEERDNS=no
+	PEERROUTES=yes
+	IPV6_PEERDNS=yes
+	IPV6_PEERROUTES=yes
+(note: flexlm licensing mechanism looks for the MAC address only on the eth0 interface)
+
 ------------------------------------
 * --- Install grub on PHD(Portable Hard Disk)
 $ fdisk /dev/sdb ...
