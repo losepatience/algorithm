@@ -1183,6 +1183,14 @@ own_window_transparent yes
 
 # yum install thunderbird wps
 
+* --- install nvidia on fedora20 x64
+$ wget us.download.nvidia.com/XFree86/Linux-x86/340.24/NVIDIA-Linux-x86_64-340.24.run
+$ sudo chmod +x NVIDIA-Linux-*-340.24.run
+$ sudo /etc/init.d/gdm stop
+$ sudo ./NVIDIA-Linux-*-340.24.run
+$ sudo /etc/init.d/gdm start
+
+
 * --- install ds5 on fedora20 x64
 $ sudo yum install glibc gtk2 libstdc++ alsa-lib atk cairo \
 	fontconfig freetype libX11 libXext libXi libXrender \
