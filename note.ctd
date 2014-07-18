@@ -1102,6 +1102,11 @@ $ su -
 # yum install p7zip p7zip-plugins bluefish xclip fish yumex -y
 # yum install vim vim-X11 wmctrl cscope ctags -y
 
+* --- conky-colors
+sudo yum install elementary-icon-theme echo-icon-theme \
+	numix-icon-theme numix-icon-theme-circle \
+	tango-icon-theme tango-icon-theme-extras -y
+
 # vim /etc/passwd
 (note: linus:x:1000:1000:linus:/home/linus:/usr/bin/fish
     or 
