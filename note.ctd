@@ -3239,7 +3239,19 @@ Cache 写回内存有两种模式:
 * ------ stack
   局部变量可能直接使用寄存器储存, 局部数组使用 stack.
   uCOS 中每个任务都有自己的堆栈, 异常也有自己的 stack. 如果支持中断嵌套,
-  堆栈可能需要比较大. 注意堆栈溢出, 会导致各种奇怪的现象.</rich_text></node><node name="make" prog_lang="makefile" readonly="False" tags="" unique_id="2"><rich_text>1. 读入所有的 Makefile.
+  堆栈可能需要比较大. 注意堆栈溢出, 会导致各种奇怪的现象.</rich_text></node><node name="printer" prog_lang="custom-colors" readonly="False" tags="" unique_id="13"><rich_text>Clean:
+根据设定，clean 是以下各步骤的组合
+1. 先闪喷 n 次吹出渣滓    2. z 轴下降挂掉渣滓    3. z 轴上升再次闪喷去除沾上的墨滴
+4. z 轴下降与墨栈形成封闭空间，墨栈出墨形成空压，渣滓从喷头上被洗掉,
+
+墨栈：
+空闲时，小车停留在墨栈。墨栈用于保护喷头，吸出余墨等
+
+点火：
+</rich_text><rich_text link="webs http://www.docin.com/p-563513594.html">http://www.docin.com/p-563513594.html</rich_text><rich_text>
+
+
+</rich_text></node><node name="make" prog_lang="makefile" readonly="False" tags="" unique_id="2"><rich_text>1. 读入所有的 Makefile.
 2. 读入被 include 的其它 Makefile.
 3. 初始化文件中的变量(展开: 除规则命令行中的变量和函数以外)
 4. 推导隐晦规则, 并分析所有规则.
@@ -4055,7 +4067,7 @@ paging_init(mdesc);
 	sanity_check_meminfo();
 
 </rich_text></node><node name="sum" prog_lang="custom-colors" readonly="False" tags="" unique_id="12"><rich_text>
-
+</rich_text><rich_text justification="left"></rich_text><rich_text>
 1. arm 机器可由 mac, mcu id(flash id 一般不用, 可能换) 唯一标识,
    mcu id 可从 cp15 读出.
 
