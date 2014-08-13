@@ -4066,7 +4066,127 @@ paging_init(mdesc);
 	/* 根据 vmalloc_min, 调整 cmdline 参数和 lowmem_limit */
 	sanity_check_meminfo();
 
-</rich_text></node><node name="sum" prog_lang="custom-colors" readonly="False" tags="" unique_id="12"><rich_text>
+</rich_text></node><node name="usb" prog_lang="c" readonly="False" tags="" unique_id="14"><rich_text>typedef struct {
+  UCHAR bLength;
+  UCHAR bDescriptorType;
+  USHORT bcdUSB;
+  UCHAR bDeviceClass;
+  UCHAR bDeviceSubClass;
+  UCHAR bDeviceProtocol;
+  UCHAR bMaxPacketSize0;
+  USHORT idVendor;
+  USHORT idProduct;
+  USHORT bcdDevice;
+  UCHAR iManufacturer;
+  UCHAR iSerialNumber;
+  UCHAR bNumConfigurations;
+} USB_DEVICE_DESCRIPTOR;
+Members
+bLength
+Size, in bytes, of this structure.
+
+bDescriptorType
+Constant value DEVICE.
+
+bcdUSB
+Version number of the USB specification for which the device is compliant, in binary-coded decimal form. For example, version 2.10 is represented as 0x210.
+
+bDeviceClass
+Device class code. The USB working group assigns device class codes. If this member is zero (0), each of the USB device's interfaces within a configuration specifies its own class information. The interfaces act independently. If this member is between 0x01 and 0xFE inclusive, the USB device supports different device classes on different interfaces. Thus, this member represents the aggregate of all the interfaces, and the interfaces might not act independently. The bDeviceClass value 0xFF is vendor specific.
+
+bDeviceSubClass
+Device subclass code. The USB working group assigns device class codes. The meaning of the value in this member depends on the value in the bDeviceClass member. If bDeviceClass is reset to zero (0), bDeviceSubClass must also be reset to zero (0).
+
+bDeviceProtocol
+Protocol code. The USB working group assigns protocol codes. The meaning of the value in this member depends on the values in the bDeviceClass and bDeviceSubClass members. The value 0xFF indicates a vendor-specific protocol.
+
+bMaxPacketSize0
+Maximum packet size allowed for endpoint zero (0). Only values 8, 16, 32, and 64 are valid.
+
+idVendor
+Vendor identifier. The USB working group assigns vendor identifiers.
+
+idProduct
+Product identifier. Manufacturers assign product identifiers.
+
+bcdDevice
+USB device's release number, in binary-coded decimal format.
+
+iManufacturer
+Index of a string descriptor describing the manufacturer.
+
+iSerialNumber
+Index of a string descriptor containing the USB device's serial number.
+
+bNumConfigurations
+Number of possible configurations for the USB device.
+
+
+
+
+
+
+
+typedef struct {
+  UCHAR bLength;
+  UCHAR bDescriptorType;
+  UCHAR bInterfaceNumber;
+  UCHAR bAlternateSetting;
+  UCHAR bNumEndpoints;
+  UCHAR bInterfaceClass;
+  UCHAR bInterfaceSubClass;
+  UCHAR bInterfaceProtocol;
+  UCHAR iInterface;
+} USB_INTERFACE_DESCRIPTOR;
+Members
+
+bLength
+Length, in bytes, of this structure.
+bDescriptorType
+Constant value INTERFACE.
+bInterfaceNumber
+Interface's number. This value is a zero-based index into an array of interfaces supported by the relevant configuration.
+bAlternateSetting
+Value used to select an alternate setting for the interface identified in bInterfaceNumber.
+bNumEndpoints
+Number of endpoints used by this interface, excluding endpoint zero (0). If this value is zero (0), the interface only uses the default control pipe.
+bInterfaceClass
+Interface class code. The USB working group defines class codes. The value 0xFF represents a vendor-specific class code.
+bInterfaceSubClass
+Interface subclass code. The USB working group defines subclass codes. The meaning of this member depends on the value of bInterfaceClass.
+bInterfaceProtocol
+Interface protocol code. The USB working group defines protocol codes. The value 0xFF indicates a vendor-specific protocol code.
+iInterface
+Index of a string descriptor describing this interface.
+
+
+
+
+
+
+       对于很多设备之间的通信，经常需要自己设计一套通信协议。当然此处的通信协议一般都是建立在TCPIP协议等协议基础之上的协议，也就是在已有协议的基础之上，在定义一套协议。例如：有一套检测降雨量的设备（一般为简单的嵌入式设备）需要把采集到的的数据上报给中心服务器（一般为一台性能特别好的计算机）。就需要一套通信协议。以保证，嵌入式设备上发的数据，可以被中心服务器正确的理解和处理。再例如：在桥梁检测的项目中，会检测很多桥梁的数据，应力，索力，温度等，这些检测设备一般都是由简单的传感器组成的嵌入式设备 ，需要通过各种方式把采集到的的数据上报给中心服务器，中心服务器经过分析处理后，再进一步判断桥梁的各种状态。这些都涉及到自定义通信协议。
+   但这些自定义通信协议如何设计？有设计到那些方面？
+  协议的设计，是为了保证双方能够正常的通信，由于上位设备和下位设备一般是不同的设备，处理能力有很大差异，这些都是设计协议必须考虑的问题。
+  一套完整的协议，通常包含很多命令，每一个命令都会规定一个完整的命令（也就是一个完整的数据帧）包含哪些部分，一般包含以下几部分：
+  1数据帧的组成的形式
+   一般形式有字节流（有的地方也叫做二进制协议）和字符流。字节流一般会规定每一个字节表示的含义，而字符流由于都是可见的字符，一般会规定，字符的含义。
+2数据帧头和尾
+     数据帧头和尾其实是为了解析数据而设计的，主要是为了获取一个完整的帧。由于网络的不确定性，无法保证一条完整的数据帧的一次性就发送给对方。一般选择用很少出现的字节或者字符作为数据帧头和尾。
+   例如我曾经解析过得MODE 04 PROTOCOL的一套协议，就是以0x03，0x14开头的，由于MODE 04 PROTOCOL是字节流协议，因此规定了命令的开头两个字节是0x03，0x14，还曾经解析过字符流的协议，命令是以##开头。数据帧尾有时会有，有时没有，例如MODE 04 PROTOCOL就没有协议尾，因为它有两个字节表示本条数据帧的长度，所以没必要规定数据帧尾。相反，如果无法判断一条命令的长度，就会规定数据帧如何结束。如果数据帧长度都是一样的，也没有必要规定，但实际中很少遇到数据帧长度是固定的情况。
+3数据帧的验证部分
+  对于字节流的协议，一般会规定验证数据帧的验证部分，例如MODE 04 PROTOCOL就规定了数据帧最后两个字节是crc验证部分。
+对于字符流的也可以加验证字段，但因为每一部分都都是可视的字符，也可以不加。
+4转义字符
+    再少出现的字符由于数据帧内容的不确定性，也有可能在数据帧内部出现，例如：MODE 04 PROTOCOL协议当数据帧内部出现了0x03，0x14，也就是数据帧规定的开始部分，就必须转义，否则就会解析出错。导致一个数据帧变成两部分不完整无法理解的数据帧。
+5命令字及其他
+    命令字就是标示此数据帧，需要完成的命令，例如：读取时间命令数据帧，就有一部分标示此数据帧是读取时间，设置时间命令数据帧就有一部分标示此数据帧是用来设置时间的，当然会有命令内容例如把时间调整到多少。
+
+6心跳包
+  心跳包作为一条很特殊的数据帧，作用其实和人的心跳类似。每隔一段时间，就会发送一条很特殊的数据帧心跳包。作用就是表明此设备还在工作。
+例如QQ的在上状态应该就是通过类似心跳包的设计来完成的。但在无线领域还有其他作用，避免已经建立的链接断开。尤其数据是通过GPRS发送时，如果长时间不发送数据，网络运营商就会回收链接，下次发送数据时，就必须重新建立链接，这对于需要永远在线的设备或者是需要随时唤醒的设备来说，显然是不行的。
+对比：
+    字节流协议难度显然比字符流大很多，解析过程也更复杂，如果没有协议文档，几乎不能解析，因为收到的就是一串毫无意思的数字，一个字节处理错误就完全可能导致整条数据解析错误，此外字节流还需要规定大端模式和小端模式等。当然好处就是，传输同样的信息，数据量明显少很多。
+   字符流就简单很多，解析的过程可能就是一个正则表达式。</rich_text></node><node name="sum" prog_lang="custom-colors" readonly="False" tags="" unique_id="12"><rich_text>
 </rich_text><rich_text justification="left"></rich_text><rich_text>
 1. arm 机器可由 mac, mcu id(flash id 一般不用, 可能换) 唯一标识,
    mcu id 可从 cp15 读出.
