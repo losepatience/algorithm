@@ -1161,7 +1161,7 @@ own_window_transparent yes
 # vim /usr/share/conkycolors/bin/conkyPhotoRandom
 :s!xxxxxx!/home/linus/Pictures
 
-* --- qq
+* --- wine qq
 yum install alsa-lib-devel.i686 alsa-lib-devel audiofile-devel.i686 audiofile-devel alsa-plugins-pulseaudio.i686 cups-devel.i686 cups-devel dbus-devel.i686 dbus-devel fontconfig-devel.i686 fontconfig-devel freetype.i686 freetype-devel.i686 freetype-devel giflib-devel.i686 giflib-devel lcms-devel.i686 lcms-devel libICE-devel.i686 libICE-devel libjpeg-turbo-devel.i686 libjpeg-turbo-devel libpng-devel.i686 libpng-devel libSM-devel.i686 libSM-devel libusb-devel.i686 libusb-devel libX11-devel.i686 libX11-devel libXau-devel.i686 libXau-devel libXcomposite-devel.i686 libXcomposite-devel libXcursor-devel.i686 libXcursor-devel libXext-devel.i686 libXext-devel libXi-devel.i686 libXi-devel libXinerama-devel.i686 libXinerama-devel libxml2-devel.i686 libxml2-devel libXrandr-devel.i686 libXrandr-devel libXrender-devel.i686 libXrender-devel libxslt-devel.i686 libxslt-devel libXt-devel.i686 libXt-devel libXv-devel.i686 libXv-devel libXxf86vm-devel.i686 libXxf86vm-devel mesa-libGL-devel.i686 mesa-libGL-devel mesa-libGLU-devel.i686 mesa-libGLU-devel ncurses-devel.i686 ncurses-devel openldap-devel.i686 openldap-devel openssl-devel.i686 openssl-devel zlib-devel.i686 pkgconfig sane-backends-devel.i686 sane-backends-devel xorg-x11-proto-devel glibc-devel.i686 prelink fontforge flex bison libstdc++-devel.i686 pulseaudio-libs-devel.i686 libgphoto2-devel.i686 openal-soft-devel openal-soft-devel.i686  gsm-devel.i686 samba-winbind libv4l-devel.i686 cups-devel.i686 libtiff-devel.i686 gstreamer-devel.i686 gstreamer-plugins-base-devel.i686 gettext-devel.i686 libmpg123-devel.i686 mesa-dri-drivers.i686 lcms2-devel.i686 -y
 yum install wine -y
 
@@ -1175,10 +1175,6 @@ winetricks riched20 riched30 ie7 vcrun6 flash12 gdiplus msls31 msxml6 vcrun2005 
 winetricks ie7 riched20  msctf vcrun2005 cjkfonts
 winetricks # install QQ
 
-
-
-* --- Vim + Fish = &quot;E484: Can’t open file /tmp/vRDNVqe/0&quot; error
-(note: &quot;in the ~/.vimrc config file: set shell=/bin/sh&quot;)
 
 * --- lamp
 # yum install httpd -y
@@ -1680,6 +1676,10 @@ EABI:
 	swi 0x0
 OABI
 	swi (#num | 0x900000)
+	
+eval cmdLine
+(note: eval 会对 cmdLine 扫描两遍, 如果第一遍扫描后 cmdLine 是个普通命令则执行此命令;
+如果 cmdLine 中含有变量的间接引用, 则保证间接引用的语义)
 
 # --------- git
 
