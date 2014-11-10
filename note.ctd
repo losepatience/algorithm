@@ -1101,6 +1101,7 @@ $ su -
 
 # yum install p7zip p7zip-plugins bluefish xclip fish yumex -y
 # yum install vim vim-X11 wmctrl cscope ctags -y
+# yum -y install texinfo texinfo-tex texi2html
 
 * --- conky-colors
 sudo yum install elementary-icon-theme echo-icon-theme \
@@ -1141,6 +1142,40 @@ own_window_transparent yes
 (note: comment it out the line: minimum_size
        comment out weather
 )
+
+
+
+* --- ltib
+1. download L3.0.35_4.1.0_130816_source.tar.gz from freescale website
+
+2. # yum install make gcc gcc-c++ kernel-devel bison libuuid-devel \
+        ncurses-devel zlib-devel lzo-devel intltool libtool tcl \
+        rpm-build texinfo-tex -y
+
+3. patch m4.tar.bz2
+--- lib/stdio.in.h.orig
++++ lib/stdio.in.h
+@@ -695,7 +695,9 @@
+ /* It is very rare that the developer ever has full control of stdin,
+    so any use of gets warrants an unconditional warning.  Assume it is
+    always declared, since it is required by C89.  */
+-_GL_WARN_ON_USE (gets, &quot;gets is a security hole - use fgets instead&quot;);
++#if defined(__GLIBC__) &amp;&amp; !defined(__UCLIBC__) &amp;&amp; !__GLIBC_PREREQ(2, 16)
++ _GL_WARN_ON_USE (gets, &quot;gets is a security hole - use fgets instead&quot;);
++#endif
+ #endif
+ 
+ 4. modify ltib/dist/lfs-5.1/base_libs/base_libs.spec.
+     ...
+     perl -w -e ''
+     # @ARGV = grep { `file $_` =~ m,ASCII C program text, } @ARGV;
+     # exit (0) unless @ARGV;
+     
+ 5. $ sudo visudo
+          Add the following line and save the file:
+          linus     ALL=NOPASSWD: /bin/rpm,/opt/freescale/ltib/usr/bin/rpm
+    $ ./ltib
+
 
 * --- conky-colors
 # yum install ImageMagick conky
@@ -4108,6 +4143,19 @@ struct tag {
 
 #define for_each_tag(t,base)		\
 	for (t = base; t-&gt;hdr.size; t = tag_next(t))
+
+
+
+
+
+menuconfig
+
+Patch physical to virtual translations at runtime
+对物理-虚拟地址互相转换进行修改, 该功能会根据内核在系统中的位置自动计算出相应地址
+
+Support for paging of anonymous memory
+闪存（flash）的读写次数一般为十万次, 不要 swap 分区
+
 </rich_text></node><node name="bootmem" prog_lang="c" readonly="False" tags="" unique_id="11"><rich_text>struct membank {
 	unsigned long start;
 	unsigned long size;
