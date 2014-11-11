@@ -1196,19 +1196,7 @@ own_window_transparent yes
 # vim /usr/share/conkycolors/bin/conkyPhotoRandom
 :s!xxxxxx!/home/linus/Pictures
 
-* --- wine qq
-yum install alsa-lib-devel.i686 alsa-lib-devel audiofile-devel.i686 audiofile-devel alsa-plugins-pulseaudio.i686 cups-devel.i686 cups-devel dbus-devel.i686 dbus-devel fontconfig-devel.i686 fontconfig-devel freetype.i686 freetype-devel.i686 freetype-devel giflib-devel.i686 giflib-devel lcms-devel.i686 lcms-devel libICE-devel.i686 libICE-devel libjpeg-turbo-devel.i686 libjpeg-turbo-devel libpng-devel.i686 libpng-devel libSM-devel.i686 libSM-devel libusb-devel.i686 libusb-devel libX11-devel.i686 libX11-devel libXau-devel.i686 libXau-devel libXcomposite-devel.i686 libXcomposite-devel libXcursor-devel.i686 libXcursor-devel libXext-devel.i686 libXext-devel libXi-devel.i686 libXi-devel libXinerama-devel.i686 libXinerama-devel libxml2-devel.i686 libxml2-devel libXrandr-devel.i686 libXrandr-devel libXrender-devel.i686 libXrender-devel libxslt-devel.i686 libxslt-devel libXt-devel.i686 libXt-devel libXv-devel.i686 libXv-devel libXxf86vm-devel.i686 libXxf86vm-devel mesa-libGL-devel.i686 mesa-libGL-devel mesa-libGLU-devel.i686 mesa-libGLU-devel ncurses-devel.i686 ncurses-devel openldap-devel.i686 openldap-devel openssl-devel.i686 openssl-devel zlib-devel.i686 pkgconfig sane-backends-devel.i686 sane-backends-devel xorg-x11-proto-devel glibc-devel.i686 prelink fontforge flex bison libstdc++-devel.i686 pulseaudio-libs-devel.i686 libgphoto2-devel.i686 openal-soft-devel openal-soft-devel.i686  gsm-devel.i686 samba-winbind libv4l-devel.i686 cups-devel.i686 libtiff-devel.i686 gstreamer-devel.i686 gstreamer-plugins-base-devel.i686 gettext-devel.i686 libmpg123-devel.i686 mesa-dri-drivers.i686 lcms2-devel.i686 -y
-yum install wine -y
 
-echo export WINEARCH=\&quot;win32\&quot; &gt;&gt; ~/.bashrc
-
-winecfg
-sudo cp gnome-keyring-pkcs11.so p11-kit-trust.so /usr/lib/pkcs11
-
-winetricks riched20 riched30 ie7 vcrun6 flash12 gdiplus msls31 msxml6 vcrun2005 vcrun2008 winhttp
-
-winetricks ie7 riched20  msctf vcrun2005 cjkfonts
-winetricks # install QQ
 
 
 * --- lamp
@@ -1333,51 +1321,6 @@ $ sudo yum install kernel-PAE-devel kmod-nvidia-PAE
 Package requirements (xxx &gt;= 1.2beta3) were not met:
 编译安装 xxx 包
 $ export PKG_CONFIG_PATH=path2xxx/pkgconfig:$PKG_CONFIG_PATH
-------------------------------------
-* --- Install wps
-$ wget http://wdl.cache.ijinshan.com/wps/download/Linux/unstable/kingsoft-office_9.1.0.4096~a11p1_x86.tar.xz
-$ tar zxf kingsoft-office_9.1.0.4096~a11p1_x86.tar.xz
-$ cd kingsoft-office_9.1.0.4096~a11p1_x86/office6
-$ cp xx/libstdc++.so.6.0.17 ./libstdc++.so.6
-$ cp xx/libfreetype.so.6.8.0 ./libfreetype.so.6
-$ ldd wps &gt; /dev/null
-
-or
-
-$ sudo rpm -ivh kingsoft-office-9.1.0.4184-0.1.a12p1.i686.rpm --nodeps
-$ cp xx/libstdc++.so.6.0.17 ./libstdc++.so.6
-$ cp xx/libfreetype.so.6.8.0 ./libfreetype.so.6
-$ ldd wps &gt; /dev/null
-------------------------------------
-* --- Install iptux on centos6.4
-$ git clone git://github.com/iptux-src/iptux.git
-$ autoreconf -i
-$ ./configure
-$ make
-$ sudo make install
-------------------------------------
-* --- Install iptux on centos6.4
-$ git clone git://github.com/iptux-src/iptux.git
-$ autoreconf -i
-$ ./configure
-$ make
-$ sudo make install
-------------------------------------
-* --- Install chromium on centos6.4
-$ su -
-
-# cd /etc/yum.repos.d
-# wget http://people.centos.org/hughesjr/chromium/6/chromium-el6.repo
-# yum install chromium
-
-# cd /tmp
-# wget https://raw.github.com/hughesjr/chromium_el_builder/master/chrome_pepperflash_copy.sh
-# chmod +x chrome_pepperflash_copy.sh
-# ./chrome_pepperflash_copy.sh
-
-# wget https://raw.github.com/hughesjr/chromium_el_builder/master/chrome_libpdf_copy.sh
-# chmod +x chrome_libpdf_copy.sh
-# ./chrome_libpdf_copy.sh
 
 ------------------------------------
 * --- Install bluefish on centos6.4
