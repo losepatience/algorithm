@@ -1125,26 +1125,6 @@ sudo yum install elementary-icon-theme echo-icon-theme \
        $ vblank_mode=0 optirun -b primus &lt;application&gt; [params]
 )
 
-# yum install conky -y
-$ su linus
-$ wget http://gnome-look.org/CONTENT/content-files/139024-Conky-lua1.tar.gz
-$ tar zxf 139024-Conky-lua1.tar.gz
-$ tar zxf ./Conky-lua/Conky\ fedora-lua.tar.gz -C .
-$ mkdir -p ~/.lua/scripts ~/.conky
-$ cp ./Conky\ fedora-lua/clock_rings.lua ~/.lua/scripts
-$ cp ./Conky\ fedora-lua/conkyrc ~/.conkyrc
-$ cp ./Conky\ fedora-lua/fedora-logo.png ~/.conky
-$ vim ~/.conkyrc
-own_window yes
-own_window_type normal
-own_window_argb_visual yes
-own_window_transparent yes
-(note: comment it out the line: minimum_size
-       comment out weather
-)
-
-
-
 * --- ltib
 1. download L3.0.35_4.1.0_130816_source.tar.gz from freescale website
 
@@ -1176,46 +1156,6 @@ own_window_transparent yes
           linus     ALL=NOPASSWD: /bin/rpm,/opt/freescale/ltib/usr/bin/rpm
     $ ./ltib
 
-
-* --- conky-colors
-# yum install ImageMagick conky
-# wget http://125.39.35.131/files/21220000032B6CD8/www.deviantart.com/download/244793180/conky_colors_by_helmuthdu-d41qrmk.zip
-# unzip conky_colors_by_helmuthdu-d41qrmk.zip
-# cd conky_colors
-# make &amp;&amp; make install
-# conky-colors --theme=custom --default-color=black --color0=cyan --color1=green \
-    --color2=orange --color3=red --fedora --cpu=2 --updates --proc=3 --clock=modern \
-    --calendar --hd=default --photord --network --unit=C --side=right \
-    --bbcweather=1586 --weather=CHXX0100 
-
-# vim ~/conkycolors/conkyrc
-:%s/aptitude/yum/g
-:%s!(null)!/usr/share/conkycolors!g
-:%s/eth0/actual-ethname/g
-:%s/wlan0/actual-wlanname/g
-# vim /usr/share/conkycolors/bin/conkyPhotoRandom
-:s!xxxxxx!/home/linus/Pictures
-
-
-
-
-* --- lamp
-# yum install httpd -y
-# systemctl enable httpd.service
-# systemctl start httpd.service(systemctl reload httpd.service)
-# firewall-cmd --permanent --add-service=http
-
-# yum install mysql mysql-server
-# systemctl enable mysqld.service
-# systemctl start mysqld.service
-# mysql_secure_installation
-
-# yum install php php-mysql -y
-# vim /var/www/html/info.php
-(note: &lt;?php phpinfo(); ?&gt;)
-# systemctl restart httpd.service
-
-# yum install thunderbird wps
 
 * --- install nvidia on fedora20 x64
 $ wget us.download.nvidia.com/XFree86/Linux-x86/340.24/NVIDIA-Linux-x86_64-340.24.run
@@ -1291,106 +1231,14 @@ $ boot
 find --set-root --ignore-floppies --ignore-cd /CentOS-6.2-i386-bin-DVD.iso)
 ------------------------------------
 * --- Setup CentOS
-$ sudo yum install unrar git git-gui gitk gnupg gnupg2 flex bison gperf \
-	gcc gcc-c++ zip curl zlib-devel wget mtd-utils mtd-utils-ubi 	\
-	fakeroot fakeroot-libs gawk subversion unixODBC util-linux 	\
-	SDL-devel esound-devel esound-libs wxGTK-devel ncurses-devel 	\
-	readline-devel libzip-devel xorg-x11-proto-devel -y
-$ sudo yum install texinfo  -y
 
-$ sudo yum install minicom nfs-utils rpcbind tftp tftp-server samba -y
-$ sudo yum install gstreamer-plugins-ugly gstreamer-plugins-bad -y
-(note: mp3 decode)
-$ sudo yum install vim-X11 telnet minicom -y
-$ sudo yum install fuse fuse-ntfs-3g -y
-------------------------------------
-* --- Fedora media
-$ sudo yum install ffmpeg ffmpeg-libs gstreamer-ffmpeg xvidcore 	\
-	libdvdread libdvdnav lsdvd gstreamer-plugins-good 	\
-	gstreamer-plugins-bad gstreamer-plugins-ugly 	\
-	libtunepimp-extras-freeworld xine-lib-extras-freeworld 	\
-	libmatroska xvidcore audacious-plugins-freeworld-mp3
-------------------------------------
-* --- Fedora nvdia(akmod|kmod|kmod-PAE)
-akmod-nvidia
-$ sudo yum install akmod-nvidia xorg-x11-drv-nvidia-libs #recommended
-$ sudo yum install kmod-nvidia xorg-x11-drv-nvidia-libs
-$ sudo yum install kernel-PAE-devel kmod-nvidia-PAE
 ------------------------------------
 * --- 包依赖
 Package requirements (xxx &gt;= 1.2beta3) were not met:
 编译安装 xxx 包
 $ export PKG_CONFIG_PATH=path2xxx/pkgconfig:$PKG_CONFIG_PATH
 
-------------------------------------
-* --- Install bluefish on centos6.4
-stall Howto
-Download the latest epel-release rpm from
-	http://dl.fedoraproject.org/pub/epel/6/x86_64/
-# rpm -Uvh epel-release*rpm
-# yum install bluefish
-------------------------------------
-* --- boa
-$ wget http://www.boa.org/boa-0.94.13.tar.gz
-$ tar zxf boa-0.94.13.tar.gz
-$ cd boa-0.94.13/src
-$ ./configure;make
-(util.c: 100: 1: pasting &quot;t&quot; and &quot;-&gt;&quot; does not give a valid
- preprocessing token make: [util.o] Error1
- compat.h: #define TIMEZONE_OFFSET(foo) foo##-&gt;tm_gmtoff x:##
- 
- 注掉:
- if (setuid(0) != -1) {
-	DIE(&quot;icky Linux kernel bug!&quot;);
- }
-)
 
-# mkdir /etc/boa;cp boa.conf /etc/boa
-# vim /etc/boa/boa.conf
-  	User 0
-  	Group 0
-  	ErrorLog /var/log/boa/error_log
-  	AccessLog /var/log/boa/access_log
-  	DirectoryIndex index.html
-	ScriptAlias /cgi-bin/ /var/www/cgi-bin
-------------------------------------
-* --- Install firebreath on centos6.4
-$ wget http://www.cmake.org/files/v2.8/cmake-2.8.11.2.tar.gz
-$ tar zxf cmake-2.8.11.2.tar.gz
-$ cd cmake-2.8.11.2
-$ ./config
-$ make
-$ sudo make install
-$ sudo yum install gtk2-devel git
-$ wget https://codeload.github.com/firebreath/FireBreath/legacy.tar.gz/master
-$ tar zxf firebreath-FireBreath-firebreath-1.7.0-27-gfafd426.tar.gz
-$ mv firebreath-FireBreath-firebreath-1.7.0-27-gfafd426 firebreath
-$ cd firebreath
-(
-$ ./prepmake.sh examples
-$ cd buildex &amp;&amp; make
-)
-$ python fbgen.py
-$ ./prepmake.sh hello
-$ cd build;make
-$ cp build/bin/nphello.so ~/.mozilla/plugins
-$ firefox build/projects/hello/gen/FBControl.htm
-------------------------------------
-* --- Install texlive-cjk
-$ cat &gt; /etc/yum.repos.d/texlive.repo &lt;&lt; EOF
-[texlive]
-name=TeXLive
-baseurl=http://jnovy.fedorapeople.org/texlive/2011/packages.el6/
-enabled=1
-gpgcheck=0
-EOF
-$ yum install texlive-cjk
-(note: By default, fonts are installed in
-/usr/share/texlive/texmf-dist/tex/latex/cjk/texinput/
-ls this dir and use one.
-Example:
-	\begin{CJK}{UTF8}{gbsn}
-)
 ------------------------------------
 * --- Install fonts
 $ cp *.ttf /usr/share/fonts/tauren
@@ -1442,12 +1290,6 @@ IP_Messenger(http://ipmsg.org)
 . 在 firefox 地址栏输入 about:config 把 network.proxy.socks_remote_dns
   设置为 true
 ------------------------------------
-* --- Install cherrytree
-. 到 http://www.giuspen.com/cherrytree/ 下载最新版本
-$ cd cherrytree &amp;&amp; python setup.py install
-------------------------------------
-* --- minicom
-$ echo alias 'minicom=sudo minicom -c on' &gt;&gt; ~/.bashrc
 
 # --------- vim
 

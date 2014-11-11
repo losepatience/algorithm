@@ -1,6 +1,13 @@
 #! /bin/bash
 # --- set up fedora 20 
-su root -c "echo \"linus   ALL=(ALL)       ALL\" >> /etc/sudoers"
+
+user=`whoami`
+
+sudo grep "$user   ALL=(ALL)       ALL" /etc/sudoers
+
+if [[ ! $? -eq 0 ]];then
+	su root -c "echo \"$user   ALL=(ALL)       ALL\" >> /etc/sudoers"
+fi
 
 #  Install rpmfusion repos
 sudo yum localinstall --nogpgcheck http://download1.rpmfusion.org/\
@@ -44,7 +51,7 @@ sudo yum install texinfo texinfo-tex texi2html -y
 #  Install fav
 sudo yum install vim vim-X11 cscope ctags cherrytree nautilus-open-terminal -y
 sudo yum install p7zip p7zip-plugins xclip yumex -y
-sudo yum install thunderbird
+sudo yum install thunderbird -y
 
 
 #  Install fcitx 
