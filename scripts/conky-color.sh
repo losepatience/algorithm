@@ -1,16 +1,16 @@
 #! /bin/bash
 
+PACKET=conky_colors_by_helmuthdu-d41qrmk.zip
+
 install ()
 {
 	sudo yum install ImageMagick conky -y
-	mkdir -p .tmp && cd .tmp
+	mkdir -p .tmp && cd .tmp && rm -fr conky_colors
 	if [ ! -f conky_colors_by_helmuthdu-d41qrmk.zip ]; then
-		wget http://125.39.35.131/files/21220000032B6CD8/www.devia\
-ntart.com/download/244793180/conky_colors_by_helmuthdu-d41qrmk.zip
+		wget http://fc00.deviantart.net/fs71/f/2013/290/5/b/$PACKET
 	fi
 
-	rm -fr conky_colors && unzip conky_colors_by_helmuthdu-d41qrmk.zip
-	cd conky_colors
+	unzip $PACKET && cd conky_colors
 	make
 	sudo make install
 	conky-colors --theme=custom --default-color=black --color0=cyan \
@@ -25,17 +25,19 @@ config ()
 {
 	sed -i "s/aptitude/yum/g" ~/.conkycolors/conkyrc
 	sed -i "s/(null)/\/usr\/share\/conkycolors/g" ~/.conkycolors/conkyrc
-	net=`sudo ifconfig | grep "^p[0-9]" | awk -F ":" '{print $1}'`
-	sed -i "s/eth0/$net/g" ~/.conkycolors/conkyrc
-	net=`sudo ifconfig | grep "^wlp" | awk -F ":" '{print $1}'`
-	sed -i "s/wlan0/$net/g" ~/.conkycolors/conkyrc
+	eth=`sudo ifconfig | grep "^p[0-9]" | head -1 | awk -F ":" '{print $1}'`
+	if [ -n "$eth" ]; then
+		sed -i "s/eth0/`echo $eth`/g" ~/.conkycolors/conkyrc
+	fi
+	wlan=`sudo ifconfig | grep "^wlp" | head -1 | awk -F ":" '{print $1}'`
+	if [ -n "$wlan" ]; then
+		sed -i "s/wlan0/$wlan/g" ~/.conkycolors/conkyrc
+	fi
 
-	home=$HOME
-	sudo sed -i "s!source=.*!source=$home/Pictures!" \
-		/usr/share/conkycolors/bin/conkyPhotoRandom
+	sed -i "s!source=.*!source=$HOME/Pictures!" \
+		$HOME/.conkycolors/bin/conkyPhotoRandom
 
 	sed -i "/# \- HD \- #/,/# \- NETWORK \- #/d" ~/.conkycolors/conkyrc
-
 }
 
 usage ()

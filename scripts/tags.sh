@@ -10,11 +10,8 @@ case "$1" in
 tags)
 	maketags
 	;;
-env)
-	~/altera/13.0sp1/embedded/embedded_command_shell.sh
-	;;
 *)
-	echo "Usage: $0 [tags|env}"
+	echo "Usage: $0 tags"
 esac
 
 
