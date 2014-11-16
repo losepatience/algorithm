@@ -1059,71 +1059,10 @@ expand(struct zone *zone, struct page *page,
 # --------- Setup your system
 ------------------------------------
 * --- Things to do after install fedora20
-$ su -
-# yum localinstall --nogpgcheck http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm 
-# yum localinstall --nogpgcheck http://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
-
-# cd /etc/yum.repos.d
-# wget http://mirrors.163.com/.help/fedora-163.repo
-# wget http://mirrors.163.com/.help/fedora-updates-163.repo
-# wget http://mirrors.sohu.com/help/fedora-sohu.repo
-# wget http://mirrors.sohu.com/help/fedora-updates-sohu.repo
-# yum makecache
-# yum install yum-fastestmirror yum-presto -y
-
-# yum install gnome-shell-theme-* gnome-tweak-tool gnome-shell-extension-user-theme.noarch -y
-
-# yum install cherrytree nautilus-open-terminal audacious audacious-plugins-freeworld vlc
-
-# yum install http://linuxdownload.adobe.com/adobe-release/adobe-release-x86_64-1.0-1.noarch.rpm -y
-# rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-adobe-linux
-# yum install flash-plugin -y
-
 # su -c &quot;curl http://satya164.github.io/fedy/fedy-installer -o fedy-installer &amp;&amp; chmod +x fedy-installer &amp;&amp; ./fedy-installer&quot;
-
-# yum install akmod-nvidia xorg-x11-drv-nvidia-libs
-(note: akmod-nvidia 4 GeForce 8/9/200/300/400/500/600/700 series cards)
-
-# yum remove ibus
-# gsettings set org.gnome.settings-daemon.plugins.keyboard active false
-# yum install fcitx  fcitx-table fcitx-table-chinese fcitx-pinyin fcitx-configtool
-(note: choose english keyboard Fcitx Configuration.
-       Add english input method first, then pinyin
-)
-
-# yum install unrar git git-gui gitk gnupg gnupg2 flex bison gperf gcc \
-	gcc-c++ zip curl zlib-devel wget mtd-utils mtd-utils-ubi \
-	fakeroot fakeroot-libs gawk subversion unixODBC util-linux \
-	SDL-devel esound-devel esound-libs wxGTK-devel ncurses-devel \
-	readline-devel libzip-devel xorg-x11-proto-devel libbsd-devel \
-	libbsd glibc-devel libX11-devel help2man autoconf  glib2 \
-	glib2-devel kernel-devel kernel-headers automake gtk2-devel -y
-
-# yum install p7zip p7zip-plugins bluefish xclip fish yumex -y
-# yum install vim vim-X11 wmctrl cscope ctags -y
-# yum -y install texinfo texinfo-tex texi2html
-
-* --- conky-colors
-sudo yum install elementary-icon-theme echo-icon-theme \
-	numix-icon-theme numix-icon-theme-circle \
-	tango-icon-theme tango-icon-theme-extras -y
-
-# vim /etc/passwd
-(note: linus:x:1000:1000:linus:/home/linus:/usr/bin/fish
-    or 
-       $ chsh -s /usr/bin/fish
-)
 
 # export LANG=en_US
 # xdg-user-dirs-gtk-update
-
-# yum -y --nogpgcheck install http://install.linux.ncsu.edu/pub/yum/itecs/public/bumblebee/fedora20/noarch/bumblebee-release-1.1-1.noarch.rpm
-# yum -y --nogpgcheck install http://install.linux.ncsu.edu/pub/yum/itecs/public/bumblebee-nonfree/fedora20/noarch/bumblebee-nonfree-release-1.1-1.noarch.rpm
-# yum install VirtualGL bbswitch bumblebee bumblebee-nvidia primus
-# usermod -a -G bumblebee linus
-(note: By default, primus renders up to 60 fps. To more:
-       $ vblank_mode=0 optirun -b primus &lt;application&gt; [params]
-)
 
 * --- ltib
 1. download L3.0.35_4.1.0_130816_source.tar.gz from freescale website
@@ -1155,15 +1094,6 @@ sudo yum install elementary-icon-theme echo-icon-theme \
           Add the following line and save the file:
           linus     ALL=NOPASSWD: /bin/rpm,/opt/freescale/ltib/usr/bin/rpm
     $ ./ltib
-
-
-* --- install nvidia on fedora20 x64
-$ wget us.download.nvidia.com/XFree86/Linux-x86/340.24/NVIDIA-Linux-x86_64-340.24.run
-$ sudo chmod +x NVIDIA-Linux-*-340.24.run
-$ sudo /etc/init.d/gdm stop
-$ sudo ./NVIDIA-Linux-*-340.24.run
-$ sudo /etc/init.d/gdm start
-
 
 * --- install ds5 on fedora20 x64
 $ sudo yum install glibc gtk2 libstdc++ alsa-lib atk cairo \
@@ -1271,24 +1201,7 @@ $ sudo echo 3 &gt; /proc/sys/vm/drop_caches
 	1 - 释放页缓存
 	2 - 释放dentries和inodes
 	3 - 释放所有缓存)
-------------------------------------
-* --- Common utility
-nevernote(the free-version of evernote)
 
-qstardict
-在用户目录的 .config 文件夹下, 有个qstardict 目录,
-它包含 qstardict 的配置信息
-
-IP_Messenger(http://ipmsg.org)
-设置 --&gt; 首选项 --&gt; 字符编码 --&gt; 选为GBK
-------------------------------------
-* --- 翻墙
-. 到 http://www.cjb.net/ 注册账户
-  $ ssh -D 127.0.0.1:7070 furioustauren@216.194.70.6
-. 给 firefox 安装 AutoProxy 插件并重启之, 在弹出的对话框中
-  选中 gfwlist 并把 &quot;默认代理&quot; 设置为 ssh-D(P)
-. 在 firefox 地址栏输入 about:config 把 network.proxy.socks_remote_dns
-  设置为 true
 ------------------------------------
 
 # --------- vim
