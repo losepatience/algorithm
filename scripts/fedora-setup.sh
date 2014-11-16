@@ -5,7 +5,7 @@ user=`whoami`
 
 sudo grep "$user   ALL=(ALL)       ALL" /etc/sudoers
 
-if [[ ! $? -eq 0 ]];then
+if [[ ! $? -eq 0 ]]; then
 	su root -c "echo \"$user   ALL=(ALL)       ALL\" >> /etc/sudoers"
 fi
 
