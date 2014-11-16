@@ -38,6 +38,12 @@ config ()
 		$HOME/.conkycolors/bin/conkyPhotoRandom
 
 	sed -i "/# \- HD \- #/,/# \- NETWORK \- #/d" ~/.conkycolors/conkyrc
+
+	grep "conky -c" ~/.bash_profile > /dev/null 2>&1
+	if [[ $? -ne 0 ]]; then
+		echo 'sleep 5 && conky -c ~/.conkycolors/conkyrc &' \
+		       >> ~/.bash_profile
+	fi
 }
 
 usage ()
