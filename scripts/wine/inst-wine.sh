@@ -70,7 +70,11 @@ updates/20/i386/p11-kit-trust-0.20.7-1.fc20.i686.rpm
 #winetricks # install QQ
 config ()
 {
-	#echo export WINEARCH=\"win32\" >> ~/.bashrc
+	grep "export WINEARCH" ~/.bashrc > /dev/null 2>&1
+	if [ $? -ne 0 ]; then
+		echo export WINEARCH=\"win32\" >> ~/.bashrc
+	fi
+
 	export WINEARCH="win32"
 	winecfg
 	winetricks riched20 riched30 ie7 vcrun6 msls31 msxml6 \
