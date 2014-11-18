@@ -1553,12 +1553,6 @@ $ git push --tags # push 所有 tag
 * --- Git advanced skill
 
 *Git 支持自动补全
-$ cp git/contrib/completion/git-completion.bash ~/.git-completion.bash
-在 .bashrc 中加入:
-if [ -f .git-completion.bash ]; then
-	. .git-completion.bash
-fi
-
 $ git reflog record your commit history
 (note: afer a $ git reset --hard abcde, the sha-1 &quot;abcde&quot;
 are still in reflog, you can run $ git reset --hard abcde to
@@ -1574,32 +1568,6 @@ $ git cherry-pick [–n] &lt;commit name&gt;
 (note: merge a commit)
 
 $ git branch &lt;new branch&gt; &lt;start point&gt;
-
-$ cp git-completion.bash ~/.git-completion.bash
-$ echo &quot;. ~/.git-completion.bash&quot; &gt;&gt; ~/.bashrc
-(note: auto-completion)
-------------------------------------
-* --- Gitolte
-
-* pre-git check:
-(any permission that contains &quot;R&quot;/&quot;W&quot; matches a read/write operation.
-In addition, gitolite ignores deny rules during the pre-git check.
-so Wally in our example will pass the pre-git check.)
-
-
-* update check: git gives us all the information we need. Then:
-(   1. All the rules for a repo are accumulated.
-    2. The rules pertaining to this repo and this user are kept;
-       the rest are ignored.
-    3. These rules are examined in the sequence they appeared in the conf file.
-    For each rule:
-        a. If the ref does not match the refex, the rule is skipped.
-        b. If it is a deny rule (the permissions field is a -),
-           access is rejected and the matching stops.
-        c. If the permission field matches the specific type of write
-           operation, access is allowed and the matching stops.
-    If no rule ends with a decision, (&quot;fallthru&quot;), access is rejected.
-)
 
 ------------------------------------
 * --- Git svn
@@ -1626,24 +1594,6 @@ $ git svn clone file:///tmp/test-svn -T trunk -b branches -t tags
 $ git svn dcommit
 ------------------------------------
 * --- Setup gitolite gitweb
-
-* $setup gitolite:
-On client:
-$ ssh-keygen -t rsa -f linus 
-$ git clone git://github.com/sitaramc/gitolite
-
-On server: ssh name@serverip
-$ sudo apt-get install git-core
-$ git config --global user.name &quot;JL&quot;
-$ git config --global user.email furious_tauren@163.com
-$ sudo adduser --system --shell /bin/bash --gecos 'git version control' \
-   --group --disabled-password --home /home/git git
-$ su git
-# copy gitolite and linus.pub here from client
-$ mkdir bin
-$ gitolite/install -to /home/git/bin
-$ /home/git/bin/gitolite setup -pk linus.pub
-
 * $setup gitweb:
 $ sudo apt-get install apache2 gitweb highlight
 
