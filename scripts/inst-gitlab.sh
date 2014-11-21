@@ -6,11 +6,8 @@ if [[ `whoami` != "root" ]]; then
 	exit 1
 fi
 
-oldir=`pwd`
 #url="localhost"
 url="git.yourdomain.com"
-# port is fixed to '3000', otherwise there is a 503 error
-#port="3000"
 read -e -p "Enter git's password of mysql:" passwd
 read -e -p "Enter your email:" email
 
@@ -26,13 +23,20 @@ yum install -y sqlite-devel libyaml-devel zlib-devel openssl-devel \
 yum install -y ruby-devel rubygem-bundler mysql-devel mysql-server \
 	redis httpd gitolite3 logrotate postfix python-pip
 
+# setup postfix(stmp)
+rpm -qa | grep sendmail
+if [[ $? == 0 ]]; then
+	yum remove -y sendmail
+fi
+sudo alternatives --set mta /usr/sbin/sendmail.postfix
+
 pip install pygments
 
 systemctl restart redis.service
 systemctl enable redis.service
 
-systemctl restart mysqld.service 
-#systemctl enable mysqld.service
+systemctl restart mariadb.service 
+systemctl enable mariadb.service
 
 systemctl restart httpd.service
 systemctl enable httpd.service
@@ -150,7 +154,7 @@ sudo -u git -H bundle exec rake gitlab:shell:install[v2.2.0] \
 sudo -u git -H bundle exec rake gitlab:setup RAILS_ENV=production
 
 # install init script
-cp "$oldir"/gitlab /etc/init.d/ 
+cp lib/support/init.d/gitlab /etc/init.d/gitlab
 chkconfig --add gitlab
 chkconfig gitlab on
 
