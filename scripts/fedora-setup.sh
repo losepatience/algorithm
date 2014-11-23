@@ -3,18 +3,17 @@
 
 user=`whoami`
 
-sudo grep "$user   ALL=(ALL)       ALL" /etc/sudoers
-
-if [[ ! $? -eq 0 ]]; then
-	su root -c "echo \"$user   ALL=(ALL)       ALL\" >> /etc/sudoers"
+sudo echo
+if [[ $? -ne 0 ]]; then
+	echo -e "$user\tALL=(ALL)\tALL" | sudo -u root   tee -a /etc/sudoers
 fi
 
 #  Install rpmfusion repos
-sudo yum localinstall --nogpgcheck http://download1.rpmfusion.org/\
-sudo free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm 
+sudo yum localinstall -y --nogpgcheck http://download1.rpmfusion.org/\
+free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
 
-sudo yum localinstall --nogpgcheck http://download1.rpmfusion.org/\
-sudo nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
+sudo yum localinstall -y --nogpgcheck http://download1.rpmfusion.org/\
+nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
 
 yum makecache
 sudo yum install yum-fastestmirror yum-presto -y
@@ -31,7 +30,7 @@ sudo yum install elementary-icon-theme echo-icon-theme \
 
 
 #  Install media players
-sudo yum install audacious audacious-plugins-freeworld vlc
+sudo yum install audacious audacious-plugins-freeworld vlc -y
 
 sudo yum install http://linuxdownload.adobe.com/adobe-release/\
 adobe-release-x86_64-1.0-1.noarch.rpm -y

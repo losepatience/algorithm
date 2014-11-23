@@ -2,90 +2,84 @@
 # default for gitlab: dir~>/home/git/gitlab; user~>git; port~>8080
 
 if [[ `whoami` != "root" ]]; then
-	echo "must run as root"
+	echo "must run as root, exit!"
 	exit 1
 fi
 
 #url="localhost"
 url="git.yourdomain.com"
-read -e -p "Enter git's password of mysql:" passwd
-read -e -p "Enter your email:" email
+read -s -e -p "Enter password:" passwd
+echo
+read -e -p "Enter email:" email
 
 # ------ pre-install
 yum install -y sqlite-devel libyaml-devel zlib-devel openssl-devel \
 	gdbm-devel readline-devel ncurses-devel libffi-devel \
-	curl-devel libxml2-devel libxslt-devel libicu-devel
+	curl-devel libxml2-devel libxslt-devel libicu-devel cmake
 
 # postfix(recommended): Mail server to receive mail notifications
-# rubygem-bundler: No need to run gem install bundler --no-ri --no-rdoc
 # logrotate: Default log manager
 # pygments(python gadget): Syntax highlight
-yum install -y ruby-devel rubygem-bundler mysql-devel mysql-server \
-	redis httpd gitolite3 logrotate postfix python-pip
+yum install -y ruby-devel mysql-devel mysql-server \
+	redis httpd logrotate postfix python-pip
+
+# rubygem-bundler: to slow, use taobao as an alternative
+gem sources -r https://rubygems.org/
+gem sources -a https://ruby.taobao.org/
+gem install bundler --no-ri --no-rdoc
 
 # setup postfix(stmp)
 rpm -qa | grep sendmail
-if [[ $? == 0 ]]; then
+if [[ $? -eq 0 ]]; then
 	yum remove -y sendmail
 fi
 sudo alternatives --set mta /usr/sbin/sendmail.postfix
 
 pip install pygments
 
-systemctl restart redis.service
 systemctl enable redis.service
+systemctl enable mariadb.service
+systemctl enable httpd.service
 
 systemctl restart mariadb.service 
-systemctl enable mariadb.service
-
-systemctl restart httpd.service
-systemctl enable httpd.service
 # ------------------------------------------------
 # ------ setup users
-adduser -r -s /bin/bash -c 'Gitlab' -m -d /home/git/ git
+id -g git > /dev/null
+if [[ $? -eq 0 ]]; then
+	adduser -r -s /bin/bash -c 'GitLab' -g git -m -d /home/git/ git
+else
+	adduser -r -s /bin/bash -c 'GitLab' -m -d /home/git/ git
+fi
+
 usermod -a -G git apache
-usermod -a -G git gitolite3
 passwd -d git
 
-grep "git" /etc/sudoers | grep "ALL=(ALL)" | grep -v "#"
+grep "git" /etc/sudoers | grep "ALL=(ALL)" | grep -v "^#"
 if [[ ! $? -eq 0 ]]; then
 	echo -e "git\tALL=(ALL)\tALL" >> /etc/sudoers
 fi
 # ------------------------------------------------
 # ------ setup mysql
 mysql_secure_installation 
-cmd='
-CREATE USER "git"@"localhost" IDENTIFIED BY "$passwd";
+query="
 SET storage_engine=INNODB;
 
-CREATE DATABASE IF NOT EXISTS `gitlabhq_production`
-	DEFAULT CHARACTER SET `utf8` COLLATE `utf8_unicode_ci`;
+CREATE DATABASE IF NOT EXISTS \`gitlabhq_production\` DEFAULT CHARACTER
+SET \`utf8\` COLLATE \`utf8_unicode_ci\`;
 
-GRANT SELECT, LOCK TABLES, INSERT, UPDATE, DELETE, CREATE, DROP,
-	INDEX, ALTER ON `gitlabhq_production`.* TO "git"@"localhost";
+GRANT SELECT, LOCK TABLES, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX,
+ALTER ON \`gitlabhq_production\`.* TO \"git\"@\"localhost\"
+IDENTIFIED BY \"$passwd\";
+
 \q
-'
-mysql -u root -p <<< "$cmd"
-# ------------------------------------------------
-# ------ setup gitolite
-git_home="/home/git"
-
-sudo -u git -H mkdir -p $git_home/.ssh
-sudo -u git -H ssh-keygen -q -N '' -t rsa -f $git_home/.ssh/id_rsa
-sudo -u git -H gitolite setup -pk $git_home/.ssh/id_rsa.pub
-
-# change default permissions
-sed -i "s/\(UMASK[ \t=>]\+\)[0-7]\+/\10007/" $git_home/.gitolite.rc
-chmod -R ug+rwX,o-rwx $git_home/repositories/
-chmod -R ug-s $git_home/repositories/
-find $git_home/repositories/ -type d -print0 | xargs -0 chmod g+s
-chown git:git -R $git_home/
+"
+mysql -u root -p <<< "$query"
 # ------------------------------------------------
 # ------ setup gitolite redis
 sed -i 's/^port .*/port 0/' /etc/redis.conf
 
 grep 'unixsocketperm 0775' /etc/redis.conf > /dev/null 2>&1
-if [[ ! $? -eq 0 ]]; then
+if [[ $? -ne 0 ]]; then
 	echo 'unixsocket /var/run/redis/redis.sock' | tee -a /etc/redis.conf
 	echo -e 'unixsocketperm 0775' | tee -a /etc/redis.conf
 fi
@@ -105,7 +99,7 @@ usermod -aG redis git
 
 cd /home/git
 if [[ ! -d gitlab ]]; then
-	sudo -u git -H git clone git://github.com/gitlabhq/gitlabhq.git gitlab
+	sudo -u git -H git clone https://github.com/gitlabhq/gitlabhq.git gitlab
 fi
 
 # set user.name to GitLab(avoiding "configured for git user? ... no")
@@ -143,11 +137,16 @@ sed -i "s/secure password/$passwd/" config/database.yml
 chmod o-rwx config/database.yml
 
 # install gems
+sed -i 's/rubygems/ruby.taobao/' Gemfile
+grep "secure_path" /etc/sudoers | grep "/usr/local/bin"
+if [[ $? -ne 0 ]]; then
+	sed -i "/secure_path/{s/$/:\/usr\/local\/bin/}" /etc/sudoers
+fi
 sudo -u git -H bundle install --deployment --without development \
 	test postgres aws
 
 # install gitlab shell
-sudo -u git -H bundle exec rake gitlab:shell:install[v2.2.0] \
+sudo -u git -H bundle exec rake gitlab:shell:install \
 	REDIS_URL=unix:/var/run/redis/redis.sock RAILS_ENV=production
 
 # initialize database and activate advanced features
@@ -156,7 +155,7 @@ sudo -u git -H bundle exec rake gitlab:setup RAILS_ENV=production
 # install init script
 cp lib/support/init.d/gitlab /etc/init.d/gitlab
 chkconfig --add gitlab
-chkconfig gitlab on
+#chkconfig gitlab on
 
 # setup logrotate
 cp lib/support/logrotate/gitlab /etc/logrotate.d/gitlab
@@ -165,7 +164,7 @@ cp lib/support/logrotate/gitlab /etc/logrotate.d/gitlab
 sudo -u git -H bundle exec rake assets:precompile RAILS_ENV=production
 
 # start your gitlab instance
-systemctl start gitlab.service
+systemctl restart gitlab.service
 
 # setup apache
 cat <<- EOF > /etc/httpd/conf.d/gitlab.conf

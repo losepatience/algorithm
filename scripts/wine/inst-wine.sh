@@ -40,7 +40,8 @@ install ()
 	if [ ! -f /usr/lib/pkcs11/gnome-keyring-pkcs11.so ]; then
 		if [ ! -f gnome-keyring-3.10.1-1.fc20.i686.rpm ]; then
 			wget http://dl.fedoraproject.org/pub/fedora/linux/\
-releases/20/Everything/i386/os/Packages/g/gnome-keyring-3.10.1-1.fc20.i686.rpm
+releases/`uname -m`/Everything/i386/os/Packages/g/\
+gnome-keyring-3.10.1-1.fc20.i686.rpm
 		fi
 
 		rpm2cpio gnome-keyring-3.10.1-1.fc20.i686.rpm | cpio -div
@@ -51,7 +52,7 @@ releases/20/Everything/i386/os/Packages/g/gnome-keyring-3.10.1-1.fc20.i686.rpm
 	if [ ! -f /usr/lib/pkcs11/p11-kit-trust.so ]; then
 		if [ ! -f p11-kit-trust-0.20.7-1.fc20.i686.rpm ]; then
 			wget http://dl.fedoraproject.org/pub/fedora/linux/\
-updates/20/i386/p11-kit-trust-0.20.7-1.fc20.i686.rpm
+updates/`uname -m`/i386/p11-kit-trust-0.20.7-1.fc20.i686.rpm
 		fi
 
 		rpm2cpio p11-kit-trust-0.20.7-1.fc20.i686.rpm | cpio -div

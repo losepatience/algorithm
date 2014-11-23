@@ -1,18 +1,18 @@
 #! /bin/bash
 
-chrome=`which google-chrome`
+packet="google-chrome-stable_current_`uname -m`.rpm"
+
 san=/etc/fonts/conf.d/49-sansserif.conf
 default="WenQuanYi Zen Hei"
 
-if [[ ! $? -eq 0 ]]; then
-	echo "install google-chrome first."
-	exit -1
+which google-chrome > /dev/null
+if [[ $? -ne 0 ]]; then
+	if [[ ! -f $packet ]]; then
+		wget https://dl.google.com/linux/direct/$packet
+	fi
+	sudo yum localinstall -y $packet
 fi
-
-if [ ! -f $san ]; then
-	echo "No such file!"
-	exit -2
-fi
+chrome=`which google-chrome`
 
 # FIXME
 if [ ! -z $1 ]; then
