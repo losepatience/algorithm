@@ -1,18 +1,11 @@
 #! /bin/bash
 
-maketags(){
-	find `pwd` -name "*.S" -o -name "*.c" -o -name "*.h" > a
-	cscope -qbk -i a
-	rm -f a
+maketags ()
+{
+	find `pwd` -name "*.S" -o -name "*.c" -o -name "*.h" > .tmp_tagfile
+	cscope -qbk -i .tmp_tagfile
+	rm -f .tmp_tagfile
 }
 
-case "$1" in
-tags)
-	maketags
-	;;
-*)
-	echo "Usage: $0 tags"
-esac
+maketags
 
-
-		
