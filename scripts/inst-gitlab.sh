@@ -54,7 +54,7 @@ fi
 usermod -a -G git apache
 passwd -d git
 
-grep "git" /etc/sudoers | grep "ALL=(ALL)" | grep -v "^#"
+grep "git" /etc/sudoers | grep "ALL=(ALL)" | grep -v "^#" > /dev/null 2>&1
 if [[ ! $? -eq 0 ]]; then
 	echo -e "git\tALL=(ALL)\tALL" >> /etc/sudoers
 fi
@@ -75,7 +75,7 @@ IDENTIFIED BY \"$passwd\";
 "
 mysql -u root -p <<< "$query"
 # ------------------------------------------------
-# ------ setup gitolite redis
+# ------ setup redis
 sed -i 's/^port .*/port 0/' /etc/redis.conf
 
 grep 'unixsocketperm 0775' /etc/redis.conf > /dev/null 2>&1
@@ -96,16 +96,16 @@ usermod -aG redis git
 
 # ------------------------------------------------
 # ------ install gitlab
-
 cd /home/git
-if [[ ! -d gitlab ]]; then
-	sudo -u git -H git clone https://github.com/gitlabhq/gitlabhq.git gitlab
-fi
 
 # set user.name to GitLab(avoiding "configured for git user? ... no")
 sudo -u git -H git config --global user.name "GitLab"
 sudo -u git -H git config --global user.email "$email"
 sudo -u git -H git config --global core.autocrlf input
+
+if [[ ! -d gitlab ]]; then
+	sudo -u git -H git clone https://github.com/gitlabhq/gitlabhq.git gitlab
+fi
 
 cd gitlab/
 
@@ -122,8 +122,11 @@ sudo -u git -H cp config/gitlab.yml.example config/gitlab.yml
 sed -i "s/\(host: \).*/\1$url/" config/gitlab.yml
 sed -i "s/\(email_from: \).*/\1$email/" config/gitlab.yml
 
-sudo -u git -H cp config/unicorn.rb.example config/unicorn.rb
-sed -i "s/\(worker_processes[ \t]\+\)[1-9]\+/\1`nproc`/" config/unicorn.rb
+# add follow lines to access from a subdir
+sed -i "s/# \(relative_url_root\)/\1/" config/gitlab.yml
+sed -i "s/# \(config\.relative_url_root\)/\1/" config/application.rb
+# sudo -u git -H cp config/unicorn.rb.example config/unicorn.rb
+# sed -i "s/\(worker_processes[ \t]\+\)[1-9]\+/\1`nproc`/" config/unicorn.rb
 
 sudo -u git -H cp config/initializers/rack_attack.rb.example \
 	config/initializers/rack_attack.rb
@@ -161,27 +164,49 @@ chkconfig --add gitlab
 cp lib/support/logrotate/gitlab /etc/logrotate.d/gitlab
 
 # compile assets
-sudo -u git -H bundle exec rake assets:precompile RAILS_ENV=production
+# sudo -u git -H bundle exec rake assets:precompile RAILS_ENV=production
+# add follow lines to access from a subdir
+sudo -u git -H bundle exec rake assets:precompile RAILS_ENV=production \
+	RAILS_RELATIVE_URL_ROOT=/gitlab
 
 # start your gitlab instance
 systemctl restart gitlab.service
 
 # setup apache
-cat <<- EOF > /etc/httpd/conf.d/gitlab.conf
+#cat <<- EOF > /etc/httpd/conf.d/gitlab.conf
 <VirtualHost *:80>
-    ServerName $url
-    DocumentRoot /home/git/gitlab/public
-    CustomLog logs/$url combined
-    ErrorLog logs/$url-error.log
-    
-    ProxyPass /  http://127.0.0.1:8080/
-    ProxyPassReverse /  http://127.0.0.1:8080/
-    ProxyPreserveHost On
+	ServerName $url
+        DocumentRoot /var/www/html
+ 
+        <Directory /var/www/html>
+                Options FollowSymLinks
+                Order allow,deny
+                Allow from all
+                PassengerResolveSymlinksInDocumentRoot on
+        </Directory>
+ 
+        Alias /gitlab "/var/www/html/gitlab"
+        <Directory /var/www/html/gitlab>
+                Options -MultiViews
+                SetEnv RAILS_RELATIVE_URL_ROOT "/gitlab"
+                PassengerAppRoot "/home/git/gitlab"
+        </Directory>
 </VirtualHost>
-EOF
+#<VirtualHost *:80>
+#    ServerName $url
+#    DocumentRoot /home/git/gitlab/public
+#    CustomLog logs/$url combined
+#    ErrorLog logs/$url-error.log
+#    
+#    ProxyPass /  http://127.0.0.1:8080/
+#    ProxyPassReverse /  http://127.0.0.1:8080/
+#    ProxyPreserveHost On
+#</VirtualHost>
+#EOF
 systemctl restart httpd.service
 
 # Check for errors
 sudo -u git -H bundle exec rake gitlab:env:info RAILS_ENV=production
 sudo -u git -H bundle exec rake gitlab:check RAILS_ENV=production
+
 
