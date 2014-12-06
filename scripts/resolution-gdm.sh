@@ -9,12 +9,12 @@ if [[ $? -ne 0 ]]; then
 fi
 
 mode=`echo $modeline | awk '{print $1}'`
-output=`xrandr | grep -E "\<connected\>" | awk '{print $1}'`
+output=`xrandr -q | grep -E "\<connected\>" | awk '{print $1}'`
 arg1="xrandr --newmode $modeline\n"
 arg2="xrandr --addmode $output $mode\n"
 arg3="xrandr --output $output --mode $mode"
 
-grep "$mode" "$conf" > /dev/null 2>&1
+grep "$output" "$conf" > /dev/null 2>&1
 if [[ $? -ne 0 ]]; then
 	sudo sed -i "/OLD_IFS=\$IFS/a`echo $arg1$arg2$arg3`" $conf
 fi

@@ -13,8 +13,8 @@ sudo mysql_secure_installation	# set password etc.
 sudo yum install php php-mysql -y
 
 grep "<?php phpinfo();" /var/www/html/info.php
-if [[ ! $? -eq 0 ]];then
-	su root -c "echo \<?php phpinfo\(\)\; >> /var/www/html/info.php"
+if [[ $? -ne 0 ]];then
+    su root -c "echo \<?php phpinfo\(\)\; >> /var/www/html/info.php"
 fi
 
 sudo systemctl restart httpd.service
