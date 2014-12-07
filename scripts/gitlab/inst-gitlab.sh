@@ -2,45 +2,34 @@
 # default for gitlab: dir~>/home/git/gitlab; user~>git; port~>8080
 
 if [[ `whoami` != "root" ]]; then
-    echo "must run as root, exit!" && exit;
+    echo "You should run this script as root, exit!" && exit;
 fi
 
-url="git.yourdomain.com"
 oldir=`pwd`
+gitlab_url="repos.ci.org"
+gitlab_root="/home/git/gitlab"
 
-# use passenger to access gitlab from a subdir
-gitlab_setup_env() {
-    read -e -p "Use Passenger(y/n):" passenger
-    if [[ -z $passenger ]]; then
-        passenger="y"
-    fi
-
-    read -s -e -p "Enter password:" passwd
-    echo
-    if [[ -z $passwd ]]; then
-        passwd="123login"
-    fi
-
-    read -e -p "Enter email:" email
-    if [[ -z $email ]]; then
-        email="furious_tauren@163.com"
-    fi
-}
 # ------------------------------------------------
-# ------ setup users
-gitlab_adduser_git() {
+# ------ setup env and add user git
+gitlab_setup_env() {
+    read -s -e -p "Password for gitlabhq_production(default):" gitlab_passwd
+    echo
+    if [[ -z $gitlab_passwd ]]; then
+        gitlab_passwd="123login"
+    fi
+
+    read -e -p "Enter email(furious_tauren@163.com):" gitlab_email
+    if [[ -z $gitlab_email ]]; then
+        gitlab_email="furious_tauren@163.com"
+    fi
+
+
     id -g git > /dev/null 2>&1
     if [[ $? -eq 0 ]]; then
         adduser -r -s /bin/bash -c 'GitLab' -g git -m -d /home/git/ git
     else
         adduser -r -s /bin/bash -c 'GitLab' -m -d /home/git/ git
     fi
-
-    usermod -a -G git apache
-
-    # add 2 lines to support access from a subdir
-    usermod -a -G apache git
-    chmod g+rx /home/git/
 
     passwd -d git
 
@@ -49,46 +38,50 @@ gitlab_adduser_git() {
         echo -e "git\tALL=(ALL)\tALL" >> /etc/sudoers
     fi
 
-    gitlab_setup_env
-
-    # set user.name to GitLab(avoiding "configured for git user? ... no")
-    cd /home/git
-    sudo -u git -H git config --global user.name "GitLab"
-    sudo -u git -H git config --global user.email "$email"
-    sudo -u git -H git config --global core.autocrlf input
-
-    if [[ ! -d gitlab ]]; then
-        sudo -u git -H git clone https://github.com/gitlabhq/gitlabhq.git gitlab
-        if [[ $? -ne 0 ]]; then
-            exit;
-        fi
-    fi
+    # access gitlab from a subdir
+    chmod g+rx /home/git/
 }
 
-gitlab_prepare_dependencies() {
+gitlab_prepare() {
+
+    # ----------------------------
+    # ------ setup environment
+    gitlab_setup_env
+
+    # ----------------------------
     # ------ pre-install
     yum install sqlite-devel libyaml-devel zlib-devel openssl-devel \
                 gdbm-devel readline-devel ncurses-devel curl-devel \
-                libxml2-devel libxslt-devel libicu-devel cmake -y || exit;
+                libxml2-devel libxslt-devel libicu-devel cmake -y || exit
 
     # postfix(recommended): Mail server to receive mail notifications
     # logrotate: Default log manager
     # pygments(python gadget): Syntax highlight
     yum install ruby-devel mysql-devel mysql-server httpd-devel \
-                redis logrotate postfix python-pip -y || exit;
+                redis logrotate postfix python-pip \
+                apr-devel apr-util-devel libffi-devel -y || exit
 
+    # ----------------------------
+    # download gitlab
+    if [[ ! -d "$gitlab_root" ]]; then
+        sudo -u git -H git clone https://github.com/gitlabhq/gitlabhq.git \
+		/home/git/gitlab || exit
+    fi
+
+    cd $gitlab_root
+    # ----------------------------
     # rubygem-bundler: to slow, use taobao as an alternative
     gem sources -r https://rubygems.org/
-    gem sources -a https://ruby.taobao.org/ || exit;
-    gem install bundler --no-ri --no-rdoc || exit;
+    gem sources -a https://ruby.taobao.org/ || exit
+    gem install bundler --no-ri --no-rdoc || exit
 
     find /usr -name "mod_passenger.so" > /dev/null 2>&1
     if [[ $? -ne 0 ]]; then
-        yum install apr-devel apr-util-devel libffi-devel -y || exit;
-        gem install passenger || exit;
+        gem install passenger || exit
         passenger-install-apache2-module
     fi
 
+    # ----------------------------
     # setup postfix(stmp)
     rpm -qa | grep sendmail
     if [[ $? -eq 0 ]]; then
@@ -96,10 +89,8 @@ gitlab_prepare_dependencies() {
     fi
     sudo alternatives --set mta /usr/sbin/sendmail.postfix
 
-    pip install pygments || exit;
+    pip install pygments || exit
 
-    # ----------------------------
-    gitlab_adduser_git
     # ----------------------------
     # setup redis
     sed -i 's/^port .*/port 0/' /etc/redis.conf
@@ -114,8 +105,10 @@ gitlab_prepare_dependencies() {
         echo 'd  /var/run/redis  0755  redis  redis  10d  -' \
             | tee -a /etc/tmpfiles.d/redis.conf
     fi
-    usermod -aG redis git
     # ----------------------------
+    usermod -aG redis git
+    usermod -a -G git apache
+    usermod -a -G apache git
 
     systemctl enable redis.service
     systemctl enable mariadb.service
@@ -130,7 +123,7 @@ gitlab_prepare_dependencies() {
 # ------------------------------------------------
 # ------ setup mysql
 gitlab_setup_mysql() {
-    query="
+    gitlab_query="
     SET storage_engine=INNODB;
 
     CREATE DATABASE IF NOT EXISTS gitlabhq_production DEFAULT
@@ -138,92 +131,33 @@ gitlab_setup_mysql() {
 
     GRANT SELECT, LOCK TABLES, INSERT, UPDATE, DELETE, CREATE, DROP,
     INDEX, ALTER ON gitlabhq_production.* TO \"git\"@\"localhost\"
-    IDENTIFIED BY \"$passwd\";
+    IDENTIFIED BY \"$gitlab_passwd\";
 
     \q
     "
-    mysql -u root -p <<< "$query"
+    echo -n "root on 'mysql', "
+    mysql -u root -p <<< "$gitlab_query"
+    if [[ $? -ne 0 ]]; then
+        mysql_secure_installation || exit
+
+	# make sure it's the last cmd in this function
+        gitlab_setup_mysql
+    fi
 }
 
 # ------------------------------------------------
 # ------ setup apache
 gitlab_setup_httpd() {
-    if [[ $passenger = "y" ]]; then
 
-        passenger=`find /usr -name "mod_passenger.so"`
-        psg_root=`echo $passenger | sed -e "s/\(passenger-[0-9\.]\+\).*/\1/"`
-        ruby=`which ruby`
+    psger=`find /usr -name "mod_passenger.so"`
+    psger_root=`echo $psger | sed -e "s/\(passenger-[0-9\.]\+\).*/\1/"`
+    sed "s:so:$psger:;s:psgroot:$psger_root:" $oldir/passenger.conf > .conf
+    sed "s:example.com:$gitlab_url:" $oldir/gitlab.conf > .gconf
+    mv .conf /etc/httpd/conf.d/passenger.conf
+    mv .gconf /etc/httpd/conf.d/gitlab.conf
 
-cat <<- EOF > /etc/httpd/conf.d/gitlab.conf
-LoadModule passenger_module $passenger
-<IfModule mod_passenger.c>
-    PassengerRoot $psg_root
-    PassengerDefaultRuby $ruby
-</IfModule>
-
-<VirtualHost *:80>
-    ServerName $url
-    DocumentRoot /var/www/html
-
-    <Directory /var/www/html>
-        Options FollowSymLinks
-        Require all granted
-        PassengerResolveSymlinksInDocumentRoot on
-    </Directory>
-
-    Alias /gitlab "/var/www/html/gitlab"
-    <Directory /var/www/html/gitlab>
-        AllowOverride all
-        Options -MultiViews
-        SetEnv RAILS_RELATIVE_URL_ROOT "/gitlab"
-        PassengerAppRoot "/home/git/gitlab"
-    </Directory>
-EOF
-    else
-cat <<- EOF > /etc/httpd/conf.d/gitlab.conf
-<VirtualHost *:80>
-    ServerName $url
-    ServerSignature Off
-
-    ProxyPreserveHost On
-    AllowEncodedSlashes NoDecode
-
-    <Location />
-        Require all granted
-
-        ProxyPassReverse http://127.0.0.1:8080
-        ProxyPassReverse http://$url/
-    </Location>
-
-    RewriteEngine on
-    RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_FILENAME} !-f
-    RewriteRule .* http://127.0.0.1:8080%{REQUEST_URI} [P,QSA]
-
-    # needed for downloading attachments
-    DocumentRoot /home/git/gitlab/public
-EOF
-    fi
-
-cat <<- EOF >> /etc/httpd/conf.d/gitlab.conf
-
-    ErrorDocument 404 /404.html
-    ErrorDocument 422 /422.html
-    ErrorDocument 500 /500.html
-    ErrorDocument 503 /deploy.html
-
-    LogFormat "%{X-Forwarded-For}i %l %u %t \"%r\" %>s %b" common_forwarded
-    ErrorLog  /var/log/httpd/${url}_error.log
-    CustomLog /var/log/httpd/${url}_forwarded.log common_forwarded
-    CustomLog /var/log/httpd/${url}_access.log combined env=!dontlog
-    CustomLog /var/log/httpd/${url}.log combined
-
-</VirtualHost>
-EOF
-
-    if [[ $passenger = "y" ]]; then
-        rm /var/www/html/gitlab -fr
-        ln -s /home/git/gitlab/public /var/www/html/gitlab
-    fi
+    rm /var/www/html/gitlab -fr
+    ln -s /home/git/gitlab/public /var/www/html/gitlab
 
     systemctl restart httpd.service
 }
@@ -231,14 +165,17 @@ EOF
 # ------ install gitlab
 gitlab_install() {
 
-    gitlab_prepare_dependencies
-    gitlab_setup_mysql || mysql_secure_installation;
+    gitlab_prepare
+    gitlab_setup_mysql
 
-    cd /home/git/gitlab/
+    cd $gitlab_root
 
-    # must run as git, otherwise, the owner of files would be changed.
-    # and there post a 500 error
-    sudo -u git -H git checkout .
+    # set user.name to GitLab(avoiding "configured for git user? ... no")
+    sudo -u git -H git config --global user.name "GitLab"
+    sudo -u git -H git config --global user.email "$gitlab_email"
+    sudo -u git -H git config --global core.autocrlf input
+
+    gitlab_clean
 
     # create directory for satellites
     sudo -u git -H mkdir -p /home/git/gitlab-satellites
@@ -250,16 +187,17 @@ gitlab_install() {
 
     # copy data­base and gitlab config files from example to working copies:
     sudo -u git -H cp config/gitlab.yml.example config/gitlab.yml
-    sed -i "s/\(host: \).*/\1$url/" config/gitlab.yml
-    sed -i "s/\(email_from: \).*/\1$email/" config/gitlab.yml
+    sed -i "s/\(host: \).*/\1$gitlab_url/" config/gitlab.yml
+    sed -i "s/\(email_from: \).*/\1$gitlab_email/" config/gitlab.yml
+    # use redmine as issue tracker
+    sed -i "s/# \(.*\)redmine.sample/\1$gitlab_url/" config/gitlab.yml
+    sed -i "s/# \(redmine:\)/\1/" config/gitlab.yml
+    sed -i "s/# \([ ]*title: \"Redmine\"\)/\1/" config/gitlab.yml
 
-    if [[ $passenger = "y" ]]; then
-        sed -i "s/# \(relative_url_root\)/\1/" config/gitlab.yml
-        sed -i "s/# \(config\.relative_url_root\)/\1/" config/application.rb
-    else
-        sudo -u git -H cp config/unicorn.rb.example config/unicorn.rb
-        sed -i "s/\(worker_processes[ \t]\+\)[1-9]\+/\1`nproc`/" config/unicorn.rb
-    fi
+    #   title: "Redmine"
+    # access gitlab form a subdir
+    sed -i "s/# \(relative_url_root\)/\1/" config/gitlab.yml
+    sed -i "s/# \(config\.relative_url_root\)/\1/" config/application.rb
 
     sudo -u git -H cp config/initializers/rack_attack.rb.example \
                       config/initializers/rack_attack.rb
@@ -269,7 +207,7 @@ gitlab_install() {
 
     # configure gitlab db
     sudo -u git -H cp config/database.yml.mysql config/database.yml
-    sed -i "s/secure password/$passwd/" config/database.yml
+    sed -i "s/secure password/$gitlab_passwd/" config/database.yml
     chmod o-rwx config/database.yml
 
     # install gems
@@ -279,21 +217,17 @@ gitlab_install() {
         sed -i "/secure_path/{s/$/:\/usr\/local\/bin/}" /etc/sudoers
     fi
     sudo -u git -H bundle install --deployment --without development \
-        test postgres aws || exit;
+        test postgres aws || exit
 
     # install gitlab shell
     sudo -u git -H bundle exec rake gitlab:shell:install \
-        REDIS_URL=unix:/var/run/redis/redis.sock RAILS_ENV=production || exit;
+        REDIS_URL=unix:/var/run/redis/redis.sock RAILS_ENV=production || exit
 
     # initialize database and activate advanced features
     sudo -u git -H bundle exec rake gitlab:setup RAILS_ENV=production
 
     # install init script
-    if [[ $passenger = "y" ]]; then
-        cp $oldir/gitlab /etc/init.d/gitlab
-    else
-        cp lib/support/init.d/gitlab /etc/init.d/gitlab
-    fi
+    cp $oldir/gitlab /etc/init.d/gitlab
     chkconfig --add gitlab
     #chkconfig gitlab on
 
@@ -301,13 +235,8 @@ gitlab_install() {
     cp lib/support/logrotate/gitlab /etc/logrotate.d/gitlab
 
     # compile assets
-    if [[ $passenger = "y" ]]; then
         sudo -u git -H bundle exec rake assets:precompile RAILS_ENV=production \
                                         RAILS_RELATIVE_URL_ROOT=/gitlab
-    else
-        sudo -u git -H bundle exec rake assets:precompile RAILS_ENV=production
-    fi
-
     # start your gitlab instance
     systemctl restart gitlab.service
     gitlab_setup_httpd
@@ -315,21 +244,38 @@ gitlab_install() {
 
 # Check for errors
 gitlab_check() {
-    cd /home/git/gitlab
+    cd $gitlab_root
 
+    systemctl restart gitlab.service
+    systemctl restart httpd.service
     sudo -u git -H bundle exec rake gitlab:env:info RAILS_ENV=production
     sudo -u git -H bundle exec rake gitlab:check RAILS_ENV=production
 }
 
+gitlab_clean() {
+    cd $gitlab_root
+
+    rm /etc/logrotate.d/gitlab
+    rm /etc/init.d/gitlab
+    rm config/database.yml
+    rm config/resque.yml
+    rm config/initializers/rack_attack.rb
+    rm config/gitlab.yml
+    sudo -u git -H git checkout .
+}
+
 case "$1" in
   prepare)
-        gitlab_prepare_dependencies
+        gitlab_prepare
         ;;
   install)
         gitlab_install
         ;;
   check)
         gitlab_check
+        ;;
+  clean)
+        gitlab_clean
         ;;
   *)
         echo "Usage: $0 {prepare|install|check}"

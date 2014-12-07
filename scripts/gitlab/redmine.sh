@@ -1,76 +1,134 @@
 #! /bin/sh
 
-user=`whoami`
-instdir="$HOME/bin"
+if [[ `whoami` != "git" ]]; then
+    echo "Should run this script as user git, EXIT!" && exit;
+fi
+
+redmine_user="git"
+instdir="/home/git"
 redminedir="$instdir/redmine"
 
+if [[ -z "$url" ]]; then
+    read -e -p "Redmine URL(repos.ci.org): " redmine_url
+    if [[ -z "$redmine_url" ]]; then
+        redmine_url="repos.ci.org"
+    fi
+else
+    redmine_url=$url
+fi
+redmine_domain=`echo $redmine_url | sed "s/[0-9_a-zA-Z]*\.//"`
+
 redmine_prepare() {
-    mkdir -p $instdir
     cd $instdir
 
-    git clone https://github.com/redmine/redmine || exit;
+    if [[ ! -d $redminedir ]]; then
+        git clone https://github.com/redmine/redmine || exit
+    fi
 
-    sudo yum install apr-devel apr-util-devel curl-devel httpd \
-                     httpd-devel ImageMagick-devel mysql-devel \
-                     mysql-server postfix ruby-devel -y || exit;
+    sudo yum install ImageMagick-devel -y || exit
+
+    # when invoked by inst-gitlab.sh, the following line is unecessary.
+    sudo yum install apr-devel apr-util-devel curl-devel httpd httpd-devel \
+                     mysql-devel mysql-server postfix ruby-devel -y || exit
+
+    sudo systemctl enable mariadb.service
+    sudo systemctl enable httpd.service
+    sudo systemctl enable postfix.service
+
+    sudo systemctl restart mariadb.service
+    sudo systemctl restart postfix.service
 }
 
 redmine_setup_mysql() {
-    query="
+    redmine_query="
     CREATE DATABASE IF NOT EXISTS redmine CHARACTER SET utf8;
 
     GRANT ALL PRIVILEGES ON redmine.* TO \"redmine\"@\"localhost\"
-    IDENTIFIED BY \"$passwd\";
+    IDENTIFIED BY \"$redmine_passwd\";
 
     \q
     "
-    echo $query
-    mysql -u root -p <<< "$query"
+
+    echo -n "root on 'mysql', "
+    mysql -u root -p <<< "$redmine_query"
+    if [[ $? -ne 0 ]]; then
+        mysql_secure_installation || exit
+
+	# make sure it's the last cmd in this function
+        redmine_setup_mysql
+    fi
 }
 
 redmine_install() {
 
-    read -s -e -p "Enter password for redmine database:" passwd
+    read -s -e -p "Enter database password(default):" redmine_passwd
     echo
-    if [[ -z $passwd ]]; then
-        passwd="123login"
+    if [[ -z $redmine_passwd ]]; then
+        redmine_passwd="123login"
     fi
 
     redmine_setup_mysql
+    cd $redminedir > /dev/null 2>&1 || redmine_prepare;
+    cd $redminedir
+
+# configure database
+cat > config/database.yml << EOF
+production:
+  adapter: mysql2
+  database: redmine
+  host: localhost
+  username: redmine
+  password: "$redmine_passwd"
+  encoding: utf8
+
+EOF
+
+# email stmp
+cat > config/configuration.yml << EOF
+production:
+  email_delivery:
+    delivery_method: :smtp
+    smtp_settings:
+      address: "$redmine_url"
+      port: 25
+      domain: "$redmine_domain"
+
+  rmagick_font_path: /usr/share/fonts/wqy-zenhei/wqy-zenhei.ttc
+
+EOF
+
+    # access redmine from a sub directory
+    grep "relative_url_root" config/environment.rb > /dev/null 2>&1
     if [[ $? -ne 0 ]]; then
-        echo "Bad password, re-setup mysql"
-        mysql_secure_installation 
+        echo 'Redmine::Utils::relative_url_root = "/redmine"' >> config/environment.rb
     fi
 
-    cd $redminedir || redmine_prepare;
-
-    cp config/database.yml.example config/database.yml
-    sed -i "s/\(username: \).*/\1redmine/" config/database.yml
-    sed -i "s/\(password: \).*/\1\"$passwd\"/" config/database.yml
     sudo gem sources -r https://rubygems.org/
     sudo gem sources -a https://ruby.taobao.org/ || exit;
     sed -i 's/rubygems/ruby.taobao/' Gemfile
     sudo gem install bundler --no-ri --no-rdoc || exit;
+    bundle install --without development test || exit;
 
     # this is a patch
-    mysql2=`sudo -u $user -H bundle show mysql2`
-    alt=`find $mysql2 -name "mysql2.so"`
-    rb=`find $mysql2 -name "mysql2.rb"`
-    grep "mysql2.so" $rb > /dev/null 2>&1
-    if [[ $? -ne 0 ]]; then
-        sudo sed -i "s:mysql2/mysql2:$alt:" $rb
+    bundle show mysql2 > /dev/null 2>&1
+    if [[ $? -eq 0 ]]; then
+        redmine_mysql2=`bundle show mysql2`
+        redmine_alt=`sudo find $redmine_mysql2 -name "mysql2.so"`
+        redmine_rb=`sudo find $redmine_mysql2 -name "mysql2.rb"`
+        sudo grep "mysql2.so" $redmine_rb > /dev/null 2>&1
+        if [[ $? -ne 0 ]]; then
+            sudo sed -i "s:mysql2/mysql2:$redmine_alt:" $redmine_rb
+        fi
     fi
 
-    sudo -u $user -H bundle install --without development test || exit;
-
     # encode cookies 
-    sudo -u $user -H bundle exec rake generate_secret_token
+    bundle exec rake generate_secret_token
     
     # create the database structure
-    sudo -u $user -H bundle exec rake db:migrate RAILS_ENV=production
+    bundle exec rake db:migrate RAILS_ENV=production
     
     # insert default configuration data in database
-    sudo -u $user -H bundle exec rake redmine:load_default_data RAILS_ENV=production
+    bundle exec rake redmine:load_default_data RAILS_ENV=production
 }
 
 case "$1" in
