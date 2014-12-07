@@ -1,22 +1,12 @@
 #! /bin/sh
 
 if [[ `whoami` != "git" ]]; then
-    echo "Should run this script as user git, EXIT!" && exit;
+    echo "Should run this script as user git, EXIT!" && exit
 fi
 
 redmine_user="git"
 instdir="/home/git"
 redminedir="$instdir/redmine"
-
-if [[ -z "$url" ]]; then
-    read -e -p "Redmine URL(repos.ci.org): " redmine_url
-    if [[ -z "$redmine_url" ]]; then
-        redmine_url="repos.ci.org"
-    fi
-else
-    redmine_url=$url
-fi
-redmine_domain=`echo $redmine_url | sed "s/[0-9_a-zA-Z]*\.//"`
 
 redmine_prepare() {
     cd $instdir
@@ -61,6 +51,12 @@ redmine_setup_mysql() {
 
 redmine_install() {
 
+    read -e -p "Redmine URL(repos.ci.org): " redmine_url
+    if [[ -z "$redmine_url" ]]; then
+        redmine_url="repos.ci.org"
+    fi
+    redmine_domain=`echo $redmine_url | sed "s/[0-9_a-zA-Z]*\.//"`
+
     read -s -e -p "Enter database password(default):" redmine_passwd
     echo
     if [[ -z $redmine_passwd ]]; then
@@ -68,7 +64,7 @@ redmine_install() {
     fi
 
     redmine_setup_mysql
-    cd $redminedir > /dev/null 2>&1 || redmine_prepare;
+    cd $redminedir > /dev/null 2>&1 || redmine_prepare
     cd $redminedir
 
 # configure database
@@ -97,17 +93,11 @@ production:
 
 EOF
 
-    # access redmine from a sub directory
-    grep "relative_url_root" config/environment.rb > /dev/null 2>&1
-    if [[ $? -ne 0 ]]; then
-        echo 'Redmine::Utils::relative_url_root = "/redmine"' >> config/environment.rb
-    fi
-
     sudo gem sources -r https://rubygems.org/
-    sudo gem sources -a https://ruby.taobao.org/ || exit;
+    sudo gem sources -a https://ruby.taobao.org/ || exit
     sed -i 's/rubygems/ruby.taobao/' Gemfile
-    sudo gem install bundler --no-ri --no-rdoc || exit;
-    bundle install --without development test || exit;
+    sudo gem install bundler --no-ri --no-rdoc || exit
+    bundle install --without development test || exit
 
     # this is a patch
     bundle show mysql2 > /dev/null 2>&1
@@ -129,6 +119,7 @@ EOF
     
     # insert default configuration data in database
     bundle exec rake redmine:load_default_data RAILS_ENV=production
+
 }
 
 case "$1" in
