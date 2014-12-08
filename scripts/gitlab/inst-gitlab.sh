@@ -197,6 +197,8 @@ gitlab_install() {
     sed -i "s/# \(.*\)redmine.sample/\1$gitlab_url:$redmine_port/" config/gitlab.yml
     sed -i "s/# \(redmine:\)/\1/" config/gitlab.yml
     sed -i "s/# \([ ]*title: \"Redmine\"\)/\1/" config/gitlab.yml
+    # disable gravatar
+    sed -i "/gravatar/,/true/s/true /false/" config/gitlab.yml
 
     #   title: "Redmine"
     # access gitlab form a subdir

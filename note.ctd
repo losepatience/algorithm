@@ -963,6 +963,12 @@ amboot 里运行 diag nand erase, 然后重烧.
 
 
 
+</rich_text></node><node name="stuff" prog_lang="custom-colors" readonly="False" tags="" unique_id="15"><rich_text weight="heavy">firefox: sec_error_ocsp_old_response 选项 高级 证书 , 取消掉那个√</rich_text><rich_text>
+
+
+</rich_text><rich_text scale="h1">Omnibar</rich_text><rich_text>
+
+</rich_text><rich_text scale="h1">Hide Caption Titlebar Plus </rich_text><rich_text>
 </rich_text></node><node name="buddy" prog_lang="custom-colors" readonly="False" tags="" unique_id="10"><rich_text>
 </rich_text><rich_text justification="left"></rich_text><rich_text>
 This allocation could have occurred in the following manner
