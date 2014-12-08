@@ -23,6 +23,10 @@ gitlab_setup_env() {
         gitlab_email="furious_tauren@163.com"
     fi
 
+    read -e -p "Enter redmine port(3000):" redmine_port
+    if [[ -z $redmine_port ]]; then
+        redmine_port="3000"
+    fi
 
     id -g git > /dev/null 2>&1
     if [[ $? -eq 0 ]]; then
@@ -190,7 +194,7 @@ gitlab_install() {
     sed -i "s/\(host: \).*/\1$gitlab_url/" config/gitlab.yml
     sed -i "s/\(email_from: \).*/\1$gitlab_email/" config/gitlab.yml
     # use redmine as issue tracker
-    sed -i "s/# \(.*\)redmine.sample/\1$gitlab_url/" config/gitlab.yml
+    sed -i "s/# \(.*\)redmine.sample/\1$gitlab_url:$redmine_port/" config/gitlab.yml
     sed -i "s/# \(redmine:\)/\1/" config/gitlab.yml
     sed -i "s/# \([ ]*title: \"Redmine\"\)/\1/" config/gitlab.yml
 
