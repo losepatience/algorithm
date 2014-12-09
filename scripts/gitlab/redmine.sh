@@ -119,7 +119,6 @@ EOF
     
     # insert default configuration data in database
     bundle exec rake redmine:load_default_data RAILS_ENV=production
-
 }
 
 case "$1" in

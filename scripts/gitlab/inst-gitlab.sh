@@ -1,5 +1,11 @@
 #! /bin/sh
-# default for gitlab: dir~>/home/git/gitlab; user~>git; port~>8080
+
+# ------------------------------------------------
+# ------ default for gitlab
+#  root ~>/home/git/gitlab
+#  user ~>git; port ~>8080
+#  if use ssh, you should firstly remove gitolite.
+#
 
 if [[ `whoami` != "root" ]]; then
     echo "You should run this script as root, exit!" && exit;
