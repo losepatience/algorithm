@@ -15,6 +15,9 @@ oldir=`pwd`
 gitlab_url="repos.ci.org"
 gitlab_root="/home/git/gitlab"
 
+eth=`ifconfig | grep RUN | grep -v "lo:" | awk -F ':' '{print $1}'`
+ipaddr=`ifconfig $eth | grep "192.168" | awk '{print $2}'`
+
 # ------------------------------------------------
 # ------ setup env and add user git
 gitlab_setup_env() {
@@ -200,7 +203,7 @@ gitlab_install() {
     sed -i "s/\(host: \).*/\1$gitlab_url/" config/gitlab.yml
     sed -i "s/\(email_from: \).*/\1$gitlab_email/" config/gitlab.yml
     # use redmine as issue tracker
-    sed -i "s/# \(.*\)redmine.sample/\1$gitlab_url:$redmine_port/" config/gitlab.yml
+    sed -i "s/# \(.*\)redmine.sample/\1$ipaddr:$redmine_port/" config/gitlab.yml
     sed -i "s/# \(redmine:\)/\1/" config/gitlab.yml
     sed -i "s/# \([ ]*title: \"Redmine\"\)/\1/" config/gitlab.yml
     # disable gravatar
