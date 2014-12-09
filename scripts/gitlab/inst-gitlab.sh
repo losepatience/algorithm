@@ -126,11 +126,13 @@ gitlab_prepare() {
     systemctl enable redis.service
     systemctl enable mariadb.service
     systemctl enable httpd.service
+    systemctl enable sshd.service
     systemctl enable postfix.service
 
     systemctl restart mariadb.service
     systemctl restart postfix.service
     systemctl restart redis.service
+    systemctl restart sshd.service
 }
 
 # ------------------------------------------------
