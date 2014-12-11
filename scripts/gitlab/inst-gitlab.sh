@@ -208,8 +208,9 @@ gitlab_install() {
     sed -i "s/# \([ ]*title: \"Redmine\"\)/\1/" config/gitlab.yml
     # disable gravatar
     sed -i "/gravatar/,/true/s/true /false/" config/gitlab.yml
+    # enable signup
+    sed -i "s/# \(signup_enabled\)/\1/" config/gitlab.yml
 
-    #   title: "Redmine"
     # access gitlab form a subdir
     sed -i "s/# \(relative_url_root\)/\1/" config/gitlab.yml
     sed -i "s/# \(config\.relative_url_root\)/\1/" config/application.rb
