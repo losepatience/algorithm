@@ -1074,12 +1074,6 @@ expand(struct zone *zone, struct page *page,
 
 # --------- Setup your system
 ------------------------------------
-* --- Things to do after install fedora20
-# su -c &quot;curl http://satya164.github.io/fedy/fedy-installer -o fedy-installer &amp;&amp; chmod +x fedy-installer &amp;&amp; ./fedy-installer&quot;
-
-# export LANG=en_US
-# xdg-user-dirs-gtk-update
-
 * --- ltib
 1. download L3.0.35_4.1.0_130816_source.tar.gz from freescale website
 
