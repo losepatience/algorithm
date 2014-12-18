@@ -1166,7 +1166,7 @@ apache进程在使用内存时，是“渐长”的。也就是说，直到这�
 keepalivetimeout 这个参数决定了，在什么都不做之前，一个http进程能够等待多长时间？设想一下，如果keepalive设置为on,而 keepalivetimeout设置为一个比较大的数字，apache占用内存会很快的增长。这是因为，一个apache进程完成了一个任务（并达到了一定的内存占用，想一下“渐进”模式），并不会马上退出，而是等待一个keepalivetimeout时间。假设用户的链接请求持续不断的到来，则积累起来的无用的apache进程就会相当多，直到timeout，这些进程才会被杀死。
 但是，keepalive的确对于静态的文件，比如图像文件的传送是很有效的，因此，keepalive要设置为on，但是keepalvietimeout要设置的小些，比如5s
 • • </rich_text></node><node name="nautilus.sh" prog_lang="sh" readonly="False" tags="" unique_id="1"><rich_text>#! /usr/bin/gvim
-
+kernel 可以直接 make gtags , 这样可以跳过很多你没有编译的无关代码, 搜索结果更准确.
 # --------- Setup your system
 ------------------------------------
 * --- ltib
