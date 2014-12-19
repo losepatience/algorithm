@@ -15,9 +15,6 @@ oldir=`pwd`
 gitlab_url="repos.ci.org"
 gitlab_root="/home/git/gitlab"
 
-eth=`ifconfig | grep RUN | grep -v "lo:" | awk -F ':' '{print $1}'`
-ipaddr=`ifconfig $eth | grep "192.168" | awk '{print $2}'`
-
 # ------------------------------------------------
 # ------ setup env and add user git
 gitlab_setup_env() {
@@ -30,11 +27,6 @@ gitlab_setup_env() {
     read -e -p "Enter email(furious_tauren@163.com):" gitlab_email
     if [[ -z $gitlab_email ]]; then
         gitlab_email="furious_tauren@163.com"
-    fi
-
-    read -e -p "Enter redmine port(3000):" redmine_port
-    if [[ -z $redmine_port ]]; then
-        redmine_port="3000"
     fi
 
     id -g git > /dev/null 2>&1
@@ -205,7 +197,7 @@ gitlab_install() {
     sed -i "s/\(host: \).*/\1$gitlab_url/" config/gitlab.yml
     sed -i "s/\(email_from: \).*/\1$gitlab_email/" config/gitlab.yml
     # use redmine as issue tracker
-    sed -i "s/# \(.*\)redmine.sample/\1$ipaddr:$redmine_port/" config/gitlab.yml
+    sed -i "s/# \(.*\)redmine.sample/\1$gitlab_url\/redmine/" config/gitlab.yml
     sed -i "s/# \(redmine:\)/\1/" config/gitlab.yml
     sed -i "s/# \([ ]*title: \"Redmine\"\)/\1/" config/gitlab.yml
     # disable gravatar
@@ -273,8 +265,8 @@ gitlab_check() {
 gitlab_clean() {
     cd $gitlab_root
 
-    rm /etc/logrotate.d/gitlab
-    rm /etc/init.d/gitlab
+    rm -f /etc/logrotate.d/gitlab
+    rm -f /etc/init.d/gitlab
     rm config/database.yml
     rm config/resque.yml
     rm config/initializers/rack_attack.rb

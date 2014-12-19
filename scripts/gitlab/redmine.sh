@@ -66,6 +66,7 @@ redmine_install() {
     redmine_setup_mysql
     cd $redminedir > /dev/null 2>&1 || redmine_prepare
     cd $redminedir
+    git checkout .
 
 # configure database
 cat > config/database.yml << EOF
@@ -119,6 +120,10 @@ EOF
     
     # insert default configuration data in database
     bundle exec rake redmine:load_default_data RAILS_ENV=production
+
+    # make soft link
+    sudo rm /var/www/html/redmine -f
+    sudo ln -s /home/git/redmine/public /var/www/html/redmine
 }
 
 case "$1" in
