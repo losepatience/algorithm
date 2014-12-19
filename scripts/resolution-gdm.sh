@@ -1,13 +1,12 @@
 #! /bin/bash
 
-conf="/etc/gdm/Init/Default"
-modeline=`cvt $1 $2 | grep Modeline | sed "s/Modeline //"`
-
-if [[ $? -ne 0 ]]; then
+if [[ $# != 2 ]]; then
 	echo $"Usage: $0 x y" 1>&2
 	exit 1
 fi
 
+conf="/etc/gdm/Init/Default"
+modeline=`cvt $1 $2 | grep Modeline | sed "s/Modeline //"`
 mode=`echo $modeline | awk '{print $1}'`
 output=`xrandr -q | grep -E "\<connected\>" | awk '{print $1}'`
 arg1="xrandr --newmode $modeline\n"

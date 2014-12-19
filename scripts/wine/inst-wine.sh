@@ -93,16 +93,38 @@ clean ()
 	update-mime-database ~/.local/share/mime
 }
 
+cn()
+{
+	fontsize=13
+	winedir=~/.wine
+	windir=$winedir/drive_c/windows
+	cp simsun.ttc $windir/Fonts
+	sed -i 's/\("LogPixels"=dword:\).*/\100000070/' $winedir/system.reg
+	regedit cn.reg
+	grep "menufontsize=$fontsize" $windir/win.ini > /dev/null 2>&1
+	if [[ $? -eq 0 ]]; then
+		return
+	fi
+cat >> $windir/win.ini << EOF
+[Desktop]
+menufontsize=$fontsize
+messagefontsize=$fontsize
+statusfontsize=$fontsize
+IconTitleSize=$fontsize
+EOF
+}
+
 
 usage ()
 {
-	echo $"Usage: $0 {install|clean|config}" 1>&2
+	echo $"Usage: $0 {install|clean|config|cn}" 1>&2
 }
 
 case "$1" in
 	install) install ;;
 	config) config ;;
 	clean) clean ;;
+	cn) cn;;
 	*) usage ;;
 esac
 
