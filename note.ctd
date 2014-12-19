@@ -1167,6 +1167,18 @@ keepalivetimeout 这个参数决定了，在什么都不做之前，一个http�
 但是，keepalive的确对于静态的文件，比如图像文件的传送是很有效的，因此，keepalive要设置为on，但是keepalvietimeout要设置的小些，比如5s
 • • </rich_text></node><node name="nautilus.sh" prog_lang="sh" readonly="False" tags="" unique_id="1"><rich_text>#! /usr/bin/gvim
 kernel 可以直接 make gtags , 这样可以跳过很多你没有编译的无关代码, 搜索结果更准确.
+
+sudo yum install google-droid-sans-fonts
+然后打开【优化工具】，将【默认字体】和【窗口标题字体】改为【DroidSans】
+比较清晰美观的字体设置方案
+文本比例因子：1.0
+
+微调：Medium
+反锯齿：Grayscale
+默认字体：DroidSans 10
+文档字体：Sans10
+等宽字体：Monospace10
+窗口标题字体：DroidSans 11
 # --------- Setup your system
 ------------------------------------
 * --- ltib
