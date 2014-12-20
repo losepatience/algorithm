@@ -61,8 +61,3 @@ gsettings set org.gnome.settings-daemon.plugins.keyboard active false
 sudo yum install fcitx fcitx-table fcitx-table-chinese \
 	fcitx-pinyin fcitx-configtool -y
 
-# Install fedy
-curl http://satya164.github.io/fedy/fedy-installer -o fedy-installer
-chmod +x fedy-installer
-sudo ./fedy-installer
-rm -f fedy-installer
