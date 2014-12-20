@@ -59,3 +59,6 @@ sudo yum localinstall -y $HOME/rpmbuild/RPMS/noarch/variety-0.4.20-1.fc21.noarch
 # Interface(默认字体):	DroidSans
 # Documents(文档字体):	Sans
 # Monospace(等宽字体):	Monospace
+
+# Alternative to Dropbox
+#   SpiderOak
