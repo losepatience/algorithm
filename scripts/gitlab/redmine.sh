@@ -15,7 +15,7 @@ redmine_prepare() {
         git clone https://github.com/redmine/redmine || exit
     fi
 
-    sudo yum install ImageMagick-devel -y || exit
+    sudo yum install ImageMagick ImageMagick-devel -y || exit
 
     # when invoked by inst-gitlab.sh, the following line is unecessary.
     sudo yum install apr-devel apr-util-devel curl-devel httpd httpd-devel \
