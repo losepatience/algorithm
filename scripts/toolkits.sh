@@ -55,8 +55,6 @@ sudo yum localinstall -y $HOME/rpmbuild/RPMS/noarch/variety-0.4.20-1.fc21.noarch
 #   Dash to dock
 #   Alternatetab
 
-# Font 
-sudo yum install -y google-droid-sans-fonts
 # Windows Titles(窗口标题字体):	DroidSans
 # Interface(默认字体):	DroidSans
 # Documents(文档字体):	Sans

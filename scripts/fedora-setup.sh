@@ -5,7 +5,7 @@ user=`whoami`
 
 sudo echo
 if [[ $? -ne 0 ]]; then
-	echo -e "$user\tALL=(ALL)\tALL" | sudo -u root   tee -a /etc/sudoers
+  echo -e "$user\tALL=(ALL)\tALL" | sudo -u root tee -a /etc/sudoers
 fi
 
 #  Install rpmfusion repos
@@ -22,11 +22,11 @@ sudo yum update -y
 
  #  Install gnome shell themes
 sudo yum install gnome-shell-theme-* gnome-tweak-tool \
-	gnome-shell-extension-user-theme.noarch -y
+                 gnome-shell-extension-user-theme.noarch -y
 
 sudo yum install elementary-icon-theme echo-icon-theme \
-	faience-icon-theme \
-	tango-icon-theme tango-icon-theme-extras -y
+                 faience-icon-theme \
+                 tango-icon-theme tango-icon-theme-extras -y
 
 
 #  Install media players
@@ -39,12 +39,12 @@ sudo yum install flash-plugin -y
 
 #  Install develop tools
 sudo yum install unrar git git-gui gitk gnupg gnupg2 flex bison gperf gcc \
-	gcc-c++ zip curl zlib-devel wget mtd-utils mtd-utils-ubi \
-	fakeroot fakeroot-libs gawk subversion unixODBC util-linux \
-	SDL-devel esound-devel esound-libs wxGTK-devel ncurses-devel \
-	readline-devel libzip-devel xorg-x11-proto-devel libbsd-devel \
-	libbsd glibc-devel libX11-devel help2man autoconf  glib2 \
-	glib2-devel kernel-devel kernel-headers automake gtk2-devel -y
+                 gcc-c++ zip curl zlib-devel wget mtd-utils mtd-utils-ubi \
+                 fakeroot fakeroot-libs gawk subversion unixODBC util-linux \
+                 SDL-devel esound-devel esound-libs wxGTK-devel ncurses-devel \
+                 readline-devel libzip-devel xorg-x11-proto-devel libbsd-devel \
+                 libbsd glibc-devel libX11-devel help2man autoconf  glib2 \
+                 glib2-devel kernel-devel kernel-headers automake gtk2-devel -y
 sudo yum install texinfo texinfo-tex texi2html -y
 
 #  Install fav
@@ -59,5 +59,11 @@ sudo yum remove ibus -y
 # Gsettings should be run by you
 gsettings set org.gnome.settings-daemon.plugins.keyboard active false
 sudo yum install fcitx fcitx-table fcitx-table-chinese \
-	fcitx-pinyin fcitx-configtool -y
+                 fcitx-pinyin fcitx-configtool -y
+
+# Install google droid-sans font 
+sudo yum install google-droid-sans-fonts -y
+
+# Install cursor themes
+sudo yum install oxygen-cursor-themes -y
 
