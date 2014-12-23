@@ -14,7 +14,7 @@
 # variaty: wallpaper changer(best, wallpapoz is an simple alternative)
 # ---------------------------------------- #
 sudo yum install kdiff3 iotop lshw-gui gtk-recordmydesktop bleachbit \
-  shutter cairo-dock gthumb dia -y
+  okular shutter cairo-dock gthumb dia -y
 
 which fedy > /dev/null 2>&1
 if [[ $? -ne 0 ]]; then
