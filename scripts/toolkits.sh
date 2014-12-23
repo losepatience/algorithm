@@ -12,9 +12,14 @@
 # gthumb: image viewer
 # dia: flow chart(better than and an alternative to calligra-flow)
 # variaty: wallpaper changer(best, wallpapoz is an simple alternative)
+# openyoudao: dictionary
 # ---------------------------------------- #
 sudo yum install kdiff3 iotop lshw-gui gtk-recordmydesktop bleachbit \
   okular shutter cairo-dock gthumb dia -y
+
+sudo yum install -y dnf-plugins-core
+sudo dnf copr -y enable mosquito/myrepo
+sudo dnf install -y openyoudao
 
 which fedy > /dev/null 2>&1
 if [[ $? -ne 0 ]]; then
