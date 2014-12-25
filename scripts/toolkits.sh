@@ -57,10 +57,14 @@ if [[ $? -ne 0 ]]; then
   sudo chmod +x fedy-installer && sudo ./fedy-installer
 fi
 
+# xwared托管 ---> 由用户态 systemd 托管
+# 挂载 ---> 添加 ---> select a diretory
+# 用户密码
 sudo yum install -y dnf-plugins-core
 sudo dnf copr -y enable mosquito/myrepo
-# sudo dnf copr -y enable mosquito/myrepo-testing
+sudo dnf copr -y enable mosquito/myrepo-testing
 sudo yum install -y sogou-pinyin sogou-pinyin-skins
+sudo yum install -y pidgin-lwqq pidgin-sendscreenshot xware-desktop
 
 # users with /sbin/nologin can connect through ssh or ftp,
 # users with /bin/false are completely locked out from the system
