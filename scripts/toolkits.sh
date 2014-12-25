@@ -47,9 +47,10 @@ sudo yum install glibc.i686 arts.i686 audiofile.i686 bzip2-libs.i686 \
 # dia: flow chart(better than and an alternative to calligra-flow)
 # variaty: wallpaper changer(best, wallpapoz is an simple alternative)
 # openyoudao: dictionary
+# banshee: music player
 # ---------------------------------------- #
 sudo yum install kdiff3 iotop lshw-gui gtk-recordmydesktop bleachbit \
-  okular shutter cairo-dock gthumb dia -y
+  banshee okular shutter cairo-dock gthumb dia -y
 
 which fedy > /dev/null 2>&1
 if [[ $? -ne 0 ]]; then
@@ -57,11 +58,14 @@ if [[ $? -ne 0 ]]; then
   sudo chmod +x fedy-installer && sudo ./fedy-installer
 fi
 
+# xwared托管 ---> 由用户态 systemd 托管
+# 挂载 ---> 添加 ---> select a diretory
+# 用户密码
 sudo yum install -y dnf-plugins-core
 sudo dnf copr -y enable mosquito/myrepo
-# sudo dnf copr -y enable mosquito/myrepo-testing
-sudo yum install -y sogou-pinyin sogou-pinyin-skins \
-  pidgin-lwqq pidgin-sendscreenshot
+sudo dnf copr -y enable mosquito/myrepo-testing
+sudo yum install -y sogou-pinyin sogou-pinyin-skins
+sudo yum install -y pidgin-lwqq pidgin-sendscreenshot xware-desktop
 
 # users with /sbin/nologin can connect through ssh or ftp,
 # users with /bin/false are completely locked out from the system
