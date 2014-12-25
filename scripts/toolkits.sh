@@ -47,9 +47,10 @@ sudo yum install glibc.i686 arts.i686 audiofile.i686 bzip2-libs.i686 \
 # dia: flow chart(better than and an alternative to calligra-flow)
 # variaty: wallpaper changer(best, wallpapoz is an simple alternative)
 # openyoudao: dictionary
+# banshee: music player
 # ---------------------------------------- #
 sudo yum install kdiff3 iotop lshw-gui gtk-recordmydesktop bleachbit \
-  okular shutter cairo-dock gthumb dia -y
+  banshee okular shutter cairo-dock gthumb dia -y
 
 which fedy > /dev/null 2>&1
 if [[ $? -ne 0 ]]; then
