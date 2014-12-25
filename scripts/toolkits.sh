@@ -60,7 +60,8 @@ fi
 sudo yum install -y dnf-plugins-core
 sudo dnf copr -y enable mosquito/myrepo
 # sudo dnf copr -y enable mosquito/myrepo-testing
-sudo yum install -y sogou-pinyin sogou-pinyin-skins
+sudo yum install -y sogou-pinyin sogou-pinyin-skins \
+  pidgin-lwqq pidgin-sendscreenshot
 
 # users with /sbin/nologin can connect through ssh or ftp,
 # users with /bin/false are completely locked out from the system
