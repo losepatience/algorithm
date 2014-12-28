@@ -67,7 +67,7 @@ sudo dnf copr -y enable mosquito/myrepo
 sudo dnf copr -y enable mosquito/myrepo-testing
 sudo yum install -y sogou-pinyin sogou-pinyin-skins
 sudo yum install -y pidgin-lwqq pidgin-sendscreenshot xware-desktop
-sudo /usr/share/xware-desktop/xwared &
+/usr/share/xware-desktop/xwared &
 
 # users with /sbin/nologin can connect through ssh or ftp,
 # users with /bin/false are completely locked out from the system
