@@ -48,9 +48,10 @@ sudo yum install glibc.i686 arts.i686 audiofile.i686 bzip2-libs.i686 \
 # variaty: wallpaper changer(best, wallpapoz is an simple alternative)
 # openyoudao: dictionary
 # banshee: music player
+# goldendict: dictionary
 # ---------------------------------------- #
 sudo yum install kdiff3 iotop lshw-gui gtk-recordmydesktop bleachbit \
-  banshee okular shutter cairo-dock gthumb dia -y
+  goldendict banshee okular shutter cairo-dock gthumb dia -y
 
 which fedy > /dev/null 2>&1
 if [[ $? -ne 0 ]]; then
