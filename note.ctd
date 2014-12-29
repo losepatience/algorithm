@@ -1209,6 +1209,21 @@ kernel 可以直接 make gtags , 这样可以跳过很多你没有编译的无�
 
 sudo yum install google-droid-sans-fonts
 
+------------------------------------
+* --- xrandr
+# --auto: use the highest resolution
+xrandr --output VGA --same-as LVDS --auto
+
+# disp1 has the same contents as disp0
+xrandr --output VGA --same-as LVDS --mode 1024x768
+
+# open disp1 as right side extend screen
+xrandr --output VGA --right-of LVDS --auto
+
+ # shutdown disp1
+xrandr --output VGA --off
+xrandr --output VGA --auto --output LVDS --off
+xrandr --output VGA --off --output LVDS --auto
 # --------- Setup your system
 ------------------------------------
 * --- ltib
