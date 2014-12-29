@@ -59,9 +59,21 @@ if [[ $? -ne 0 ]]; then
   sudo chmod +x fedy-installer && sudo ./fedy-installer
 fi
 
+# ----------------- xwared --------------- #
 # xwared托管 ---> 由用户态 systemd 托管
 # 挂载 ---> 添加 ---> select a diretory
 # 用户密码
+#
+# ETM持续时间连续3次不超过30秒,终止执行ETM:
+#   rm ~/.xware-desktop/ -fr
+#   sudo sync && sudo reboot
+# ---------------------------------------- #
+#
+# ------------- sogou-pinyin ------------- #
+# 搜狗面板程序加载失败:
+#   sudo yum reinstall -y sogou-pinyin sogou-pinyin-skins
+#   sudo sync && sudo reboot
+# ---------------------------------------- #
 sudo yum install -y dnf-plugins-core
 sudo dnf copr -y enable mosquito/myrepo
 sudo dnf copr -y enable mosquito/myrepo-testing
