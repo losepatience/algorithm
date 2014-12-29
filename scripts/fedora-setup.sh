@@ -48,10 +48,9 @@ sudo yum install unrar git git-gui gitk gnupg gnupg2 flex bison gperf gcc \
 sudo yum install texinfo texinfo-tex texi2html -y
 
 #  Install fav
-sudo yum install vim vim-X11 cscope ctags cherrytree nautilus-open-terminal -y
+sudo yum install vim vim-X11 global cscope ctags \
+                 cherrytree nautilus-open-terminal -y
 sudo yum install p7zip p7zip-plugins xclip yumex -y
-sudo yum install thunderbird -y
-
 
 #  Install fcitx 
 sudo yum remove ibus -y

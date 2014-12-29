@@ -32,8 +32,9 @@ autocmd GUIEnter * set visualbell t_vb=
 """"""""""""""""""""""""""""""
 au GUIEnter * call MaximizeWindow()
 function! MaximizeWindow()
+    sleep 1
     " silent !wmctrl -r :ACTIVE: -b add,maximized_vert,maximized_horz
-    " silent !wmctrl -r :ACTIVE: -b add,fullscreen
+    silent !wmctrl -r :ACTIVE: -b add,fullscreen
 endfunction
 map <silent> <F11>
 \ :call system("wmctrl -ir " . v:windowid . " -b toggle,fullscreen")<CR>
@@ -104,32 +105,36 @@ let g:SuperTabDefaultCompletionType="<C-X><C-O>"
 """"""""""""""""""""""""""""""
 " cscope
 """"""""""""""""""""""""""""""
+" replace cscope with gnu global 
+let g:Gtags_Auto_Update = 1
+let GtagsCscope_Auto_Load = 1
+let GtagsCscope_Auto_Map = 1
 " set cscopequickfix=s-,c-,d-,i-,t-,e-
-if has("cscope")
-	set csprg=/usr/bin/cscope
-	set csto=1	" first tags, then cscope.out
-	set cst		" use ":cs find g", not ":tag"
-	set nocsverb	" not echo link info
-	set cspc=3	" the last 3 node of path
-	if filereadable("cscope.out")
-		cs add cscope.out
-	else "search cscope.out elsewhere
-		let cscope_file=findfile("cscope.out", ".;")
-		if !empty(cscope_file) && filereadable(cscope_file)
-			exec "cs add" cscope_file
-		endif      
-	endif
-	set csverb	" reset to the default  
-endif
+" if has("cscope")
+" 	set csprg=/usr/bin/cscope
+" 	set csto=1	" first tags, then cscope.out
+" 	set cst		" use ":cs find g", not ":tag"
+" 	set nocsverb	" not echo link info
+" 	set cspc=3	" the last 3 node of path
+" 	if filereadable("cscope.out")
+" 		cs add cscope.out
+" 	else "search cscope.out elsewhere
+" 		let cscope_file=findfile("cscope.out", ".;")
+" 		if !empty(cscope_file) && filereadable(cscope_file)
+" 			exec "cs add" cscope_file
+" 		endif      
+" 	endif
+" 	set csverb	" reset to the default  
+" endif
 
-nnoremap <C-i>s :cs f s <C-R>=expand("<cword>")<CR><CR>
-nnoremap <C-i>g :cs f g <C-R>=expand("<cword>")<CR><CR>
-nnoremap <C-i>c :cs f c <C-R>=expand("<cword>")<CR><CR>
-nnoremap <C-i>t :cs f t <C-R>=expand("<cword>")<CR><CR>
-nnoremap <C-i>e :cs f e <C-R>=expand("<cword>")<CR><CR>
-nnoremap <C-i>f :cs f f <C-R>=expand("<cfile>")<CR><CR>
-nnoremap <C-i>i :cs f i <C-R>=expand("<cfile>")<CR><CR>
-nnoremap <C-i>d :cs f d <C-R>=expand("<cword>")<CR><CR>
+" nnoremap <C-\>s :cs f s <C-R>=expand("<cword>")<CR><CR>
+" nnoremap <C-\>g :cs f g <C-R>=expand("<cword>")<CR><CR>
+" nnoremap <C-\>c :cs f c <C-R>=expand("<cword>")<CR><CR>
+" nnoremap <C-\>t :cs f t <C-R>=expand("<cword>")<CR><CR>
+" nnoremap <C-\>e :cs f e <C-R>=expand("<cword>")<CR><CR>
+" nnoremap <C-\>f :cs f f <C-R>=expand("<cfile>")<CR><CR>
+" nnoremap <C-\>i :cs f i <C-R>=expand("<cfile>")<CR><CR>
+" nnoremap <C-\>d :cs f d <C-R>=expand("<cword>")<CR><CR>
 
 map <F12> :set paste
 \<CR>ggO/* ~.~ *-c-*
