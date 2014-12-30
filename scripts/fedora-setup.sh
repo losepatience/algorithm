@@ -66,3 +66,5 @@ sudo yum install google-droid-sans-fonts -y
 # Install cursor themes
 sudo yum install oxygen-cursor-themes -y
 
+# Install man pages
+sudo yum install man-pages -y
