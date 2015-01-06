@@ -106,9 +106,13 @@ let g:SuperTabDefaultCompletionType="<C-X><C-O>"
 " cscope
 """"""""""""""""""""""""""""""
 " replace cscope with gnu global 
-let g:Gtags_Auto_Update = 1
-let GtagsCscope_Auto_Load = 1
 let GtagsCscope_Auto_Map = 1
+let GtagsCscope_Absolute_Path = 1
+let GtagsCscope_Auto_Load = 1
+let g:Gtags_Auto_Update = 1
+let GtagsCscope_Quiet = 1
+set cscopetag
+
 " set cscopequickfix=s-,c-,d-,i-,t-,e-
 " if has("cscope")
 " 	set csprg=/usr/bin/cscope

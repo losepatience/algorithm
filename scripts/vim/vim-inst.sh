@@ -6,5 +6,3 @@ cp .vim ~/ -a
 cp /usr/share/gtags/{gtags.vim,gtags-cscope.vim} ~/.vim/plugin
 
 cp .vimrc ~/
-
-sudo cp tags.sh /usr/local/bin -f
