@@ -1,7 +1,8 @@
-#! /bin/bash
+#! /bin/sh
 
-kernrel=`uname -r`
-grubcfg="/boot/efi/EFI/fedora/grub.cfg"
+kernel=`uname -r`
+grubdir=`sudo find /boot -name "grub.cfg" | xargs dirname`
+grubcfg=$grubdir/grub.cfg
 
 conf="/etc/gdm/Init/Default"
 modeline=`cvt 1920 1080 | grep Modeline | sed "s/Modeline //"`
@@ -11,11 +12,20 @@ arg1="xrandr --newmode $modeline\n"
 arg2="xrandr --addmode $output $mode\n"
 arg3="xrandr --output $output --mode $mode"
 
-# fixme
-sudo grep "$kernrel" $grubcfg | grep "video=eDP-1:1280x720" > /dev/null 2>&1
+sudo grub2-mkfont /usr/share/fonts/dejavu/DejaVuSansMono.ttf \
+                  --size=16 --output=$grubdir/fonts/DejaVuSansMono.pf2
+sudo grep "DejaVuSansMono.pf2" /etc/sysconfig/grub > /dev/null 2>&1
 if [[ $? -ne 0 ]]; then
-  sudo sed -i "/linuxefi.*$kernrel/{s/$/ video=eDP-1:1280x720/}" $grubcfg
+  echo "GRUB_FONT=$grubdir/fonts/DejaVuSansMono.pf2" \
+       | sudo tee -a /etc/sysconfig/grub
 fi
+sudo grub2-mkconfig -o $grubdir/grub.cfg
+
+sudo grep "$kernel" $grubcfg | grep "video=eDP-1:1280x720" > /dev/null 2>&1
+if [[ $? -ne 0 ]]; then
+  sudo sed -i "/linuxefi.*$kernel/{s/$/ video=eDP-1:1280x720/}" $grubcfg
+fi
+
 
 grep "$output" "$conf" > /dev/null 2>&1
 if [[ $? -ne 0 ]]; then

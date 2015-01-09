@@ -91,7 +91,7 @@ clean ()
 	sed -i "/wine/d" ~/.local/share/applications/mimeapps.list
 	rm -f ~/.local/share/mime/packages/x-wine-extension-*
 	update-mime-database ~/.local/share/mime
-	# rpm -qa | grep wine | xargs sudo rpm -e
+	rpm -qa | grep wine | xargs sudo rpm -e
 }
 
 cn()

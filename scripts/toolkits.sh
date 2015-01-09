@@ -34,7 +34,7 @@ sudo yum install glibc.i686 arts.i686 audiofile.i686 bzip2-libs.i686 \
   qt.i686 qt-x11.i686 pulseaudio-libs.i686 pulseaudio-libs-glib2.i686 \
   alsa-plugins-pulseaudio.i686 -y
 
-# -------- toolkits for fedora 21 -------- #
+# --------- toolkits for fedora 21 ---------- #
 # kdiff: diff
 # iotop: monitor operations on hardisk
 # lshw-gui: pc info
@@ -49,7 +49,7 @@ sudo yum install glibc.i686 arts.i686 audiofile.i686 bzip2-libs.i686 \
 # openyoudao: dictionary
 # banshee: music player
 # goldendict: dictionary
-# ---------------------------------------- #
+# ------------------------------------------- #
 sudo yum install kdiff3 iotop lshw-gui gtk-recordmydesktop bleachbit \
   goldendict banshee okular shutter cairo-dock gthumb dia -y
 
@@ -59,7 +59,12 @@ if [[ $? -ne 0 ]]; then
   sudo chmod +x fedy-installer && sudo ./fedy-installer
 fi
 
-# ----------------- xwared --------------- #
+# --------------- evolution ----------------- #
+# Composer Preferences -> General -> 
+#     Format messages in HTML
+#     Encode filenames in an Outlook/GMail way
+# ------------------------------------------- #
+# ----------------- xwared ------------------ #
 # xwared托管 ---> 由用户态 systemd 托管
 # 挂载 ---> 添加 ---> select a diretory
 # 用户密码
@@ -67,17 +72,29 @@ fi
 # ETM持续时间连续3次不超过30秒,终止执行ETM:
 #   rm ~/.xware-desktop/ -fr
 #   sudo sync && sudo reboot
-# ---------------------------------------- #
+# ------------------------------------------- #
 #
-# ------------- sogou-pinyin ------------- #
+# ------------- sogou-pinyin ---------------- #
 # 搜狗面板程序加载失败:
 #   sudo yum reinstall -y sogou-pinyin sogou-pinyin-skins
 #   sudo sync && sudo reboot
-# ---------------------------------------- #
+# ------------------------------------------- #
 sudo yum install -y dnf-plugins-core
 sudo dnf copr -y enable mosquito/myrepo
 sudo dnf copr -y enable mosquito/myrepo-testing
+
 sudo yum install -y sogou-pinyin sogou-pinyin-skins
+sudo yum remove -y ibus
+grep "GTK_IM_MODULE=fcitx" ~/.xprofile > /dev/null 2>&1
+if [[ $? -ne 0 ]]; then
+  env="
+export GTK_IM_MODULE=fcitx
+export QT_IM_MODULE=fcitx
+export XMODIFIERS=@im=fcitx
+"
+  cat >> ~/.xprofile <<< "$env"
+fi
+
 sudo yum install -y pidgin-lwqq pidgin-sendscreenshot xware-desktop
 /usr/share/xware-desktop/xwared &
 
