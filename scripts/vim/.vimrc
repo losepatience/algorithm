@@ -32,9 +32,10 @@ autocmd GUIEnter * set visualbell t_vb=
 """"""""""""""""""""""""""""""
 au GUIEnter * call MaximizeWindow()
 function! MaximizeWindow()
-    sleep 1
+    " sleep 1
     " silent !wmctrl -r :ACTIVE: -b add,maximized_vert,maximized_horz
-    silent !wmctrl -r :ACTIVE: -b add,fullscreen
+    " silent !wmctrl -r :ACTIVE: -b add,fullscreen
+    silent :call system("wmctrl -ir " . v:windowid . " -b toggle,fullscreen")
 endfunction
 map <silent> <F11>
 \ :call system("wmctrl -ir " . v:windowid . " -b toggle,fullscreen")<CR>
@@ -185,4 +186,5 @@ if exists('+colorcolumn')
   let s:color_column_old = 0
   nnoremap <Leader>m :call <SID>ToggleColorColumn()<cr>
 endif
-
+ 
+auto bufread ~/workspace/avs/* so ~/.wvimrc
