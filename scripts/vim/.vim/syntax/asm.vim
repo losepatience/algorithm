@@ -25,6 +25,7 @@ syn region asmString start=+<+ end=+>+ oneline
 syn keyword cTodo TODO FIXME XXX
 syn region cComment start="/\*" end="\*/" contains=cTodo fold extend
 syn region asmComment start=/@/ end=/$/
+syn region asmComment start=/;/ end=/$/
 
 """""""""""
 syn match asmOperator ":BASE:"
@@ -64,6 +65,15 @@ syn keyword asmRegister spsr spsr_c spsr_x spsr_s spsr_f spsr_cx
 syn keyword asmRegister spsr_cxs spsr_xs spsr_xsf spsr_sf spsr_cxsf
 syn keyword asmRegister f0 f1 f2 f3 f4 f5 f6 f7
 
+
+" for C6713
+syn keyword asmRegister a0 a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 a11 a12 a13 a14 a15
+syn keyword asmRegister b0 b1 b2 b3 b4 b5 b6 b7 b8 b9 b10 b11 b12 b13 b14 b15
+syn keyword asmRegister fp dp csr amr ier irp
+
+syn keyword asmOpcode mv mvk mvkl mvkh mvc
+syn keyword asmOpcode stb sth stw ldb ldh ldw addk
+syn keyword asmOpcode or and clr set call
 
 syn keyword asmOpcode mov moveq movne movcs movhs movcc movlo
 syn keyword asmOpcode movmi movpl movvs movvc movhi movls
